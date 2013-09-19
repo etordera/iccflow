@@ -85,7 +85,7 @@ bool IccFlowApp::parseArguments() {
 	// Traverse and analyze arguments
 	for (int i=0; i<m_argc; i++) {
 		if (std::string(m_argv[i]) == "-h") {
-			std::cout << "Help is not available (yet!)" << std::endl;
+			std::cout << "Help is still not available (yet!)" << std::endl;
 		} else if (std::string(m_argv[i]) == "-i") {
 			if (++i < m_argc) {
 				m_inputFolder = std::string(m_argv[i]);
