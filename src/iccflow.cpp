@@ -1,4 +1,3 @@
-#include "iccflow.h"
 #include "iccflowapp.h"
 
 /**

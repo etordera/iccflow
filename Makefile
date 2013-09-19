@@ -8,7 +8,7 @@ all: $(TARGET)
 $(TARGET): $(OBJDIR)iccflow.o $(OBJDIR)iccflowapp.o $(OBJDIR)iccconverter.o
 	g++ -o $(TARGET) $^ 
 
-$(OBJDIR)iccflow.o: $(SRCDIR)iccflow.cpp $(SRCDIR)iccflow.h
+$(OBJDIR)iccflow.o: $(SRCDIR)iccflow.cpp
 	g++ -c -o $(OBJDIR)iccflow.o $(SRCDIR)iccflow.cpp
 
 $(OBJDIR)iccflowapp.o: $(SRCDIR)iccflowapp.cpp $(SRCDIR)iccflowapp.h
