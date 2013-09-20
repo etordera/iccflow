@@ -83,9 +83,11 @@ bool IccFlowApp::parseArguments() {
 	m_outputFolder.empty();
 
 	// Traverse and analyze arguments
+	bool helpShown = false;
 	for (int i=0; i<m_argc; i++) {
 		if (std::string(m_argv[i]) == "-h") {
 			std::cout << "Help is still not available (yet!)" << std::endl;
+			helpShown = true;
 		} else if (std::string(m_argv[i]) == "-i") {
 			if (++i < m_argc) {
 				m_inputFolder = std::string(m_argv[i]);
@@ -97,15 +99,18 @@ bool IccFlowApp::parseArguments() {
 		}	
 	}
 
-	// Check if required parameters have been set
-	bool success = true;
-	if (m_inputFolder == "") {
-		std::cerr << "Input folder required, please specify with -i option" << std::endl;
-		success = false;
-	}
-	if (m_outputFolder == "") {
-		std::cerr << "Output folder required, please specify with -o option" << std::endl;
-		success = false;
+	bool success = false;
+	if (!helpShown) {
+		// Check if required parameters have been set
+		success = true;
+		if (m_inputFolder == "") {
+			std::cerr << "Input folder required, please specify with -i option" << std::endl;
+			success = false;
+		}
+		if (m_outputFolder == "") {
+			std::cerr << "Output folder required, please specify with -o option" << std::endl;
+			success = false;
+		}
 	}
 
 	return success;
