@@ -86,7 +86,7 @@ bool IccFlowApp::parseArguments() {
 	bool helpShown = false;
 	for (int i=0; i<m_argc; i++) {
 		if (std::string(m_argv[i]) == "-h") {
-			std::cout << "Help is still not available (yet!)" << std::endl;
+			std::cout << "Help is coming!" << std::endl;
 			helpShown = true;
 		} else if (std::string(m_argv[i]) == "-i") {
 			if (++i < m_argc) {
