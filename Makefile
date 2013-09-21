@@ -1,22 +1,22 @@
 TARGET=bin/iccflow
-SRCDIR=src/
-OBJDIR=obj/
-
+S=src/
+O=obj/
+LIBS=-ljpeg
 
 all: $(TARGET)
 
-$(TARGET): $(OBJDIR)iccflow.o $(OBJDIR)iccflowapp.o $(OBJDIR)iccconverter.o
-	g++ -o $(TARGET) $^ 
+$(TARGET): $(O)iccflow.o $(O)iccflowapp.o $(O)iccconverter.o
+	g++ -o $(TARGET) $^ $(LIBS) 
 
-$(OBJDIR)iccflow.o: $(SRCDIR)iccflow.cpp
-	g++ -c -o $(OBJDIR)iccflow.o $(SRCDIR)iccflow.cpp
+$(O)iccflow.o: $(S)iccflow.cpp
+	g++ -c -o $(O)iccflow.o $(S)iccflow.cpp
 
-$(OBJDIR)iccflowapp.o: $(SRCDIR)iccflowapp.cpp $(SRCDIR)iccflowapp.h
-	g++ -c -o $(OBJDIR)iccflowapp.o $(SRCDIR)iccflowapp.cpp
+$(O)iccflowapp.o: $(S)iccflowapp.cpp $(S)iccflowapp.h
+	g++ -c -o $(O)iccflowapp.o $(S)iccflowapp.cpp
 
-$(OBJDIR)iccconverter.o: $(SRCDIR)iccconverter.cpp $(SRCDIR)iccconverter.h
-	g++ -c -o $(OBJDIR)iccconverter.o $(SRCDIR)iccconverter.cpp
+$(O)iccconverter.o: $(S)iccconverter.cpp $(S)iccconverter.h
+	g++ -c -o $(O)iccconverter.o $(S)iccconverter.cpp
 
 clean:
-	rm $(OBJDIR)*.o
+	rm $(O)*.o
 	rm $(TARGET)
