@@ -1,6 +1,7 @@
 #include <iostream>
 #include <jpeglib.h>
 #include <fstream>
+#include "iccprofile.h"
 #include "iccconverter.h"
 
 /**
@@ -13,7 +14,6 @@ IccConverter::IccConverter() {
 	m_file.empty();
 	m_inputFolder.empty();
 	m_outputFolder.empty();
-	m_outProfile.empty();
 
 	// Initialize JPEG decompress objects
 	m_dinfo.err = jpeg_std_error(&m_derr);

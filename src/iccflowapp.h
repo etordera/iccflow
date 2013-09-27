@@ -10,6 +10,10 @@ class IccFlowApp {
 		char** m_argv;
 		std::string m_inputFolder;
 		std::string m_outputFolder;
+		std::string m_outputProfile;
+		std::string m_defaultRGBProfile;
+		std::string m_defaultCMYKProfile;
+		std::string m_defaultGrayProfile;
 
 		bool parseArguments();
 

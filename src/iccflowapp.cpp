@@ -20,6 +20,10 @@ IccFlowApp::IccFlowApp(int argc, char** argv)
 	}
 	m_inputFolder.empty();
 	m_outputFolder.empty();
+	m_outputProfile.empty();
+	m_defaultRGBProfile.empty();
+	m_defaultCMYKProfile.empty();
+	m_defaultGrayProfile.empty();
 }
 
 
@@ -81,6 +85,10 @@ bool IccFlowApp::parseArguments() {
 	// Initialize app parameters
 	m_inputFolder.empty();
 	m_outputFolder.empty();
+	m_outputProfile.empty();
+	m_defaultRGBProfile.empty();
+	m_defaultCMYKProfile.empty();
+	m_defaultGrayProfile.empty();
 
 	// Traverse and analyze arguments
 	bool helpShown = false;
@@ -95,6 +103,22 @@ bool IccFlowApp::parseArguments() {
 		} else if (std::string(m_argv[i]) == "-o") {
 			if (++i < m_argc) {
 				m_outputFolder = std::string(m_argv[i]);
+			}
+		} else if (std::string(m_argv[i]) == "-p") {
+			if (++i < m_argc) {
+				m_outputProfile = std::string(m_argv[i]);
+			}
+		} else if (std::string(m_argv[i]) == "-prgb") {
+			if (++i < m_argc) {
+				m_defaultRGBProfile = std::string(m_argv[i]);
+			}
+		} else if (std::string(m_argv[i]) == "-pcmyk") {
+			if (++i < m_argc) {
+				m_defaultCMYKProfile = std::string(m_argv[i]);
+			}
+		} else if (std::string(m_argv[i]) == "-pgray") {
+			if (++i < m_argc) {
+				m_defaultGrayProfile = std::string(m_argv[i]);
 			}
 		}	
 	}
