@@ -11,9 +11,9 @@
  */
 IccConverter::IccConverter() {
 	// Initialize member variables
-	m_file.empty();
-	m_inputFolder.empty();
-	m_outputFolder.empty();
+	m_file.clear();
+	m_inputFolder.clear();
+	m_outputFolder.clear();
 
 	// Initialize JPEG decompress objects
 	m_dinfo.err = jpeg_std_error(&m_derr);
@@ -39,6 +39,22 @@ void IccConverter::setInputFolder(const std::string& inputFolder) {
 void IccConverter::setOutputFolder(const std::string& outputFolder) {
 	// TODO: check for existing trailing slash
 	m_outputFolder = outputFolder;
+}
+
+void IccConverter::setOutputProfile(const std::string& profileName){
+	m_outputProfile.loadFromFile(profileName);
+	if (!m_outputProfile.isValid()) {
+		m_outputProfile.loadSRGB();	
+	}
+}
+
+void IccConverter::setDefaultRGBProfile(const std::string& profileName){
+}
+
+void IccConverter::setDefaultCMYKProfile(const std::string& profileName){
+}
+
+void IccConverter::setDefaultGrayProfile(const std::string& profileName) {
 }
 
 bool IccConverter::convert(const std::string& file) {

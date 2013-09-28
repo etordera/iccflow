@@ -6,9 +6,11 @@
 class IccProfile {
 	public:
 		IccProfile();
-		IccProfile(std::string);
-		IccProfile(char*,long);
 		~IccProfile();
+		bool loadFromFile(const std::string&);
+		bool loadFromMem(const char*,const long);
+		void loadSRGB();
+		bool isValid();
 		cmsHPROFILE getHandle();
 
 	private:
@@ -17,6 +19,7 @@ class IccProfile {
 		unsigned int exif_read_word(const char*, const bool);
 		unsigned long exif_read_long(const char*, const bool);
 		bool get_icc_profile(const std::string, char**, unsigned long&, unsigned int&);
+		void clear();
 
 		cmsHPROFILE m_hprofile;
 

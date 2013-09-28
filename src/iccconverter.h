@@ -2,6 +2,7 @@
 #define ICCCONVERTER_H
 
 #include <jpeglib.h>
+#include "iccprofile.h"
 
 class IccConverter {
 

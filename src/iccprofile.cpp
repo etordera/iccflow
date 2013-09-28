@@ -10,14 +10,23 @@ IccProfile::IccProfile():m_hprofile(NULL) {
 }
 
 /**
- * Constructs IccProfile object by loading profile from file.
+ * Loads ICC profile from file.
  * 
  * File can be a standard ICC Profile file, or a JPEG file.
  * JPEG files are scanned for embedded ICC Profile data, and for
  * Exif metadata. 
  *
  */
-IccProfile::IccProfile(std::string filename):m_hprofile(NULL) {
+bool IccProfile::loadFromFile(const std::string& filename) {
+	// Clear current profile data
+	clear();
+
+	// Check valid filename
+	if (filename.empty()) {
+		return false;
+	}
+
+	// Determine file type by extension and load new data
 	std::string lower = filename;
 	transform(lower.begin(),lower.end(),lower.begin(),::tolower);
 	if ((lower.rfind(".jpg") == lower.size()-4) || (lower.rfind(".jpeg") == lower.size()-5)) {
@@ -42,23 +51,51 @@ IccProfile::IccProfile(std::string filename):m_hprofile(NULL) {
 		// Load standard ICC Profile file
 		m_hprofile = cmsOpenProfileFromFile(filename.c_str(),"r");
 	}
+
+	return (m_hprofile != NULL);
 }
 
-IccProfile::IccProfile(char* buffer, long bufferSize):m_hprofile(NULL) {
+/**
+ * Loads ICC profile from a memory buffer
+ *
+ */
+bool IccProfile::loadFromMem(const char* buffer, const long bufferSize) {
+	// Clear current profile data
+	clear();
+
+	// Load profile from memory
 	m_hprofile = cmsOpenProfileFromMem((const void*) buffer, (cmsUInt32Number) bufferSize);
+
+	return (m_hprofile != NULL);
 }
+
+void IccProfile::loadSRGB() {
+	// Clear current profile data
+	clear();
+
+	// Load sRGB profile
+	m_hprofile = cmsCreate_sRGBProfile();
+}
+
 
 IccProfile::~IccProfile() {
+	clear();
+}
+
+void IccProfile::clear() {
 	if (m_hprofile != NULL) {
 		cmsCloseProfile(m_hprofile);
+		m_hprofile = NULL;
 	}
+}
+
+bool IccProfile::isValid() {
+	return (m_hprofile != NULL);
 }
 
 cmsHPROFILE IccProfile::getHandle() {
 	return m_hprofile;
 }
-
-
 
 
 bool IccProfile::get_icc_profile(std::string filename, char** profileBuffer, unsigned long &profileSize, unsigned int &exifProfile) {

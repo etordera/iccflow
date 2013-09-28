@@ -18,12 +18,12 @@ IccFlowApp::IccFlowApp(int argc, char** argv)
 	if (m_argc < 0) {
 		m_argc = 0;
 	}
-	m_inputFolder.empty();
-	m_outputFolder.empty();
-	m_outputProfile.empty();
-	m_defaultRGBProfile.empty();
-	m_defaultCMYKProfile.empty();
-	m_defaultGrayProfile.empty();
+	m_inputFolder.clear();
+	m_outputFolder.clear();
+	m_outputProfile.clear();
+	m_defaultRGBProfile.clear();
+	m_defaultCMYKProfile.clear();
+	m_defaultGrayProfile.clear();
 }
 
 
@@ -42,6 +42,10 @@ int IccFlowApp::run() {
 	IccConverter converter;
 	converter.setInputFolder(m_inputFolder);
 	converter.setOutputFolder(m_outputFolder);
+	converter.setOutputProfile(m_outputProfile);
+	converter.setDefaultRGBProfile(m_defaultRGBProfile);
+	converter.setDefaultCMYKProfile(m_defaultCMYKProfile);
+	converter.setDefaultGrayProfile(m_defaultGrayProfile);
 
 	// Open input folder
 	DIR* dir = NULL;
@@ -83,12 +87,12 @@ int IccFlowApp::run() {
 */
 bool IccFlowApp::parseArguments() {
 	// Initialize app parameters
-	m_inputFolder.empty();
-	m_outputFolder.empty();
-	m_outputProfile.empty();
-	m_defaultRGBProfile.empty();
-	m_defaultCMYKProfile.empty();
-	m_defaultGrayProfile.empty();
+	m_inputFolder.clear();
+	m_outputFolder.clear();
+	m_outputProfile.clear();
+	m_defaultRGBProfile.clear();
+	m_defaultCMYKProfile.clear();
+	m_defaultGrayProfile.clear();
 
 	// Traverse and analyze arguments
 	bool helpShown = false;
