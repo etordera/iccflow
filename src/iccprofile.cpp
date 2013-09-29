@@ -9,6 +9,40 @@
 IccProfile::IccProfile():m_hprofile(NULL) {
 }
 
+IccProfile::IccProfile(const IccProfile& iccprofile):m_hprofile(NULL) {
+	if (iccprofile.isValid()) {
+		// Save original profile to memory
+		cmsUInt32Number bytesNeeded = 0;
+		cmsSaveProfileToMem(iccprofile.getHandle(),NULL,&bytesNeeded);
+		char* buffer = new char[bytesNeeded];
+		cmsSaveProfileToMem(iccprofile.getHandle(),(void *)buffer,&bytesNeeded);
+
+		// Load from memory into new profile
+		m_hprofile = cmsOpenProfileFromMem((const void*) buffer, bytesNeeded);
+		delete[] buffer;
+	}
+}
+
+IccProfile& IccProfile::operator=(const IccProfile& iccprofile) {
+	// Clear current profile data
+	clear();
+
+	// Replicate data from source profile
+	if (iccprofile.isValid()) {
+		// Save original profile to memory
+		cmsUInt32Number bytesNeeded = 0;
+		cmsSaveProfileToMem(iccprofile.getHandle(),NULL,&bytesNeeded);
+		char* buffer = new char[bytesNeeded];
+		cmsSaveProfileToMem(iccprofile.getHandle(),(void *)buffer,&bytesNeeded);
+
+		// Load from memory into new profile
+		m_hprofile = cmsOpenProfileFromMem((const void*) buffer, bytesNeeded);
+		delete[] buffer;
+	}
+
+	return *this;
+}
+
 /**
  * Loads ICC profile from file.
  * 
@@ -77,6 +111,15 @@ void IccProfile::loadSRGB() {
 	m_hprofile = cmsCreate_sRGBProfile();
 }
 
+void IccProfile::loadGray(double gamma) {
+	// Clear current profile data
+	clear();
+	
+	// Load grayscale profile
+	cmsToneCurve* GammaCurve = cmsBuildGamma(0, gamma);
+	m_hprofile = cmsCreateGrayProfile(cmsD50_xyY(), GammaCurve);
+	cmsFreeToneCurve(GammaCurve);
+}
 
 IccProfile::~IccProfile() {
 	clear();
@@ -89,14 +132,25 @@ void IccProfile::clear() {
 	}
 }
 
+bool IccProfile::isValid() const {
+	return (m_hprofile != NULL);
+}
+
 bool IccProfile::isValid() {
 	return (m_hprofile != NULL);
+}
+
+cmsHPROFILE IccProfile::getHandle() const {
+	return m_hprofile;
 }
 
 cmsHPROFILE IccProfile::getHandle() {
 	return m_hprofile;
 }
 
+cmsUInt32Number IccProfile::getNumChannels() {
+	return cmsChannelsOf(cmsGetColorSpace(m_hprofile));
+}
 
 bool IccProfile::get_icc_profile(std::string filename, char** profileBuffer, unsigned long &profileSize, unsigned int &exifProfile) {
 

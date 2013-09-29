@@ -7,11 +7,17 @@ class IccProfile {
 	public:
 		IccProfile();
 		~IccProfile();
+		IccProfile(const IccProfile&);
+		IccProfile& operator=(const IccProfile&);
 		bool loadFromFile(const std::string&);
 		bool loadFromMem(const char*,const long);
 		void loadSRGB();
+		void loadGray(double);
+		bool isValid() const;
 		bool isValid();
+		cmsHPROFILE getHandle() const;
 		cmsHPROFILE getHandle();
+		cmsUInt32Number getNumChannels();
 
 	private:
 		void read_bytes(std::ifstream&, char*, long);

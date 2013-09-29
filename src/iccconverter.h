@@ -11,10 +11,10 @@ class IccConverter {
 		~IccConverter();
 		void setInputFolder(const std::string&);
 		void setOutputFolder(const std::string&);
-		void setOutputProfile(const std::string&);
-		void setDefaultRGBProfile(const std::string&);
-		void setDefaultCMYKProfile(const std::string&);
-		void setDefaultGrayProfile(const std::string&);
+		bool setOutputProfile(const std::string&);
+		bool setDefaultRGBProfile(const std::string&);
+		bool setDefaultCMYKProfile(const std::string&);
+		bool setDefaultGrayProfile(const std::string&);
 		bool convert(const std::string&);
 
 	private:
@@ -29,6 +29,8 @@ class IccConverter {
 		jpeg_error_mgr m_derr;
 		jpeg_compress_struct m_cinfo;
 		jpeg_error_mgr m_cerr;
+
+		void embedIccProfile(const IccProfile&,jpeg_compress_struct*);
 };
 
 #endif
