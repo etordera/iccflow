@@ -14,6 +14,7 @@ class IccFlowApp {
 		std::string m_defaultRGBProfile;
 		std::string m_defaultCMYKProfile;
 		std::string m_defaultGrayProfile;
+		int m_intent;
 
 		bool parseArguments();
 

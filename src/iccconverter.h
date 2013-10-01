@@ -15,6 +15,7 @@ class IccConverter {
 		bool setDefaultRGBProfile(const std::string&);
 		bool setDefaultCMYKProfile(const std::string&);
 		bool setDefaultGrayProfile(const std::string&);
+		bool setIntent(int);
 		bool convert(const std::string&);
 
 	private:
@@ -25,6 +26,7 @@ class IccConverter {
 		IccProfile m_defaultRGBProfile;
 		IccProfile m_defaultCMYKProfile;
 		IccProfile m_defaultGrayProfile;
+		int m_intent;
 		jpeg_decompress_struct m_dinfo;
 		jpeg_error_mgr m_derr;
 		jpeg_compress_struct m_cinfo;

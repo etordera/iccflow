@@ -89,6 +89,24 @@ bool IccConverter::setDefaultGrayProfile(const std::string& profileName) {
 	return true;
 }
 
+/**
+ * Sets the rendering intent for the color conversion.
+ *
+ * @param intent Rendering intent integer identifier, as specified in LittleCMS library
+ * @return true if a valid intent has been set, false otherwise
+ */
+bool IccConverter::setIntent(int intent) {
+	bool success = true;
+	if ((intent>=0) && (intent<=3)) {
+		m_intent = intent;
+	} else {
+		success = false;
+
+	} 
+
+	return success;
+}
+
 bool IccConverter::convert(const std::string& file) {
 	// Generate input file name
 	m_file = m_inputFolder + "/" + file;
@@ -210,7 +228,7 @@ bool IccConverter::convert(const std::string& file) {
 													inputFormat,
 													m_outputProfile.getHandle(),
 													outputFormat,
-													INTENT_PERCEPTUAL,
+													m_intent,
 													0);
 
 	// Read and process image lines

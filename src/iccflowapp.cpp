@@ -3,6 +3,7 @@
 #include <iostream>
 #include <dirent.h>
 #include <algorithm>
+#include <lcms2.h>
 
 /**
  * Main constructor. Gets the command line arguments for running
@@ -24,6 +25,7 @@ IccFlowApp::IccFlowApp(int argc, char** argv)
 	m_defaultRGBProfile.clear();
 	m_defaultCMYKProfile.clear();
 	m_defaultGrayProfile.clear();
+	m_intent = INTENT_PERCEPTUAL;
 }
 
 
@@ -46,6 +48,7 @@ int IccFlowApp::run() {
 	converter.setDefaultRGBProfile(m_defaultRGBProfile);
 	converter.setDefaultCMYKProfile(m_defaultCMYKProfile);
 	converter.setDefaultGrayProfile(m_defaultGrayProfile);
+	converter.setIntent(m_intent);
 
 	// Open input folder
 	DIR* dir = NULL;
@@ -93,6 +96,7 @@ bool IccFlowApp::parseArguments() {
 	m_defaultRGBProfile.clear();
 	m_defaultCMYKProfile.clear();
 	m_defaultGrayProfile.clear();
+	m_intent = INTENT_PERCEPTUAL;
 
 	// Traverse and analyze arguments
 	bool helpShown = false;
@@ -123,6 +127,15 @@ bool IccFlowApp::parseArguments() {
 		} else if (std::string(m_argv[i]) == "-pgray") {
 			if (++i < m_argc) {
 				m_defaultGrayProfile = std::string(m_argv[i]);
+			}
+		} else if (std::string(m_argv[i]) == "-c") {
+			if (++i < m_argc) {
+				std::string intent(m_argv[i]);
+				if (intent == "PERCEPTUAL") {
+					m_intent = INTENT_PERCEPTUAL;
+				} else if (intent == "RELATIVE") {
+					m_intent = INTENT_RELATIVE_COLORIMETRIC;
+				}
 			}
 		}	
 	}
