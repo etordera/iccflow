@@ -13,9 +13,12 @@
  */
 IccConverter::IccConverter() {
 	// Initialize variables
-	m_file.clear();
 	m_inputFolder.clear();
 	m_outputFolder.clear();
+	m_outputProfileName.clear();
+	m_defaultRGBProfileName.clear();
+	m_defaultCMYKProfileName.clear();
+	m_defaultGrayProfileName.clear();
 
 	// Initialize JPEG decompress objects
 	m_dinfo.err = jpeg_std_error(&m_derr);
@@ -57,16 +60,64 @@ void IccConverter::setOutputFolder(const std::string& outputFolder) {
 }
 
 /**
- * Sets the ICC profile that will be used as destination in 
- * the color conversion process.
- *
- * Defaults to sRGB. 
- *
- * @param[in] profileName Path to file with the output ICC profile 
- * @return true if the ICC profile was loaded correctly, false otherwise
+ * Sets the output profile for color transforms carried on by the
+ * IccConverter object.
+ * Can load the profile from an ICC Profile file or a JPEG file
+ * (extracts embedded profile).
+ * Defaults to sRGB
+ * 
+ * @param[in] profileName Path to file containing the ICC profile to assign
  */
-bool IccConverter::setOutputProfile(const std::string& profileName){
-	m_outputProfile.loadFromFile(profileName);
+void IccConverter::setOutputProfile(const std::string& profileName){
+	m_outputProfileName = profileName;
+}
+
+/**
+ * Sets the default input profile for source files in the RGB color space. 
+ * Can load the profile from an ICC Profile file or a JPEG file
+ * (extracts embedded profile).
+ * Defaults to sRGB
+ * 
+ * @param[in] profileName Path to file containing the ICC profile to assign
+ */
+void IccConverter::setDefaultRGBProfile(const std::string& profileName){
+	m_defaultRGBProfileName = profileName;
+}
+
+/**
+ * Sets the default input profile for source files in the CMYK color space. 
+ * Can load the profile from an ICC Profile file or a JPEG file
+ * (extracts embedded profile).
+ * Defaults to FOGRA27
+ * 
+ * @param[in] profileName Path to file containing the ICC profile to assign
+ */
+void IccConverter::setDefaultCMYKProfile(const std::string& profileName){
+	m_defaultCMYKProfileName = profileName;
+}
+
+/**
+ * Sets the default input profile for source files in Grayscale color space. 
+ * Can load the profile from an ICC Profile file or a JPEG file
+ * (extracts embedded profile).
+ * Defaults to D50 Gamma-2.2 Grayscale 
+ * 
+ * @param[in] profileName Path to file containing the ICC profile to assign
+ */
+void IccConverter::setDefaultGrayProfile(const std::string& profileName){
+	m_defaultGrayProfileName = profileName;
+}
+
+
+/**
+ * Loads the configured output profile to be used in color transforms.
+ * If loading fails, defaults to sRGB. 
+ *
+ * @return true if the configured ICC profile was loaded correctly, false if
+ * default had to be loaded instead
+ */
+bool IccConverter::loadOutputProfile(){
+	m_outputProfile.loadFromFile(m_outputProfileName);
 	if (!m_outputProfile.isValid()) {
 		m_outputProfile.loadSRGB();	
 		return false;
@@ -76,16 +127,14 @@ bool IccConverter::setOutputProfile(const std::string& profileName){
 }
 
 /**
- * Sets the ICC profile that will be used by default as source profile 
- * when there is no embedded profile in a source image in RGB color space. 
+ * Loads the configured default input profile for source files in the
+ * RGB color space. If loading fails, defaults to sRGB. 
  *
- * Defaults to sRGB. 
- *
- * @param[in] profileName Path to file with the default RGB ICC profile 
- * @return true if the ICC profile was loaded correctly, false otherwise
+ * @return true if the configured ICC profile was loaded correctly, false if
+ * default had to be loaded instead
  */
-bool IccConverter::setDefaultRGBProfile(const std::string& profileName){
-	m_defaultRGBProfile.loadFromFile(profileName);
+bool IccConverter::loadDefaultRGBProfile(){
+	m_defaultRGBProfile.loadFromFile(m_defaultRGBProfileName);
 	if (!m_defaultRGBProfile.isValid()) {
 		m_defaultRGBProfile.loadSRGB();	
 		return false;
@@ -95,16 +144,14 @@ bool IccConverter::setDefaultRGBProfile(const std::string& profileName){
 }
 
 /**
- * Sets the ICC profile that will be used by default as source profile 
- * when there is no embedded profile in a source image in CMYK color space. 
+ * Loads the configured default input profile for source files in the
+ * CMYK color space. If loading fails, defaults to FOGRA27. 
  *
- * Defaults to FOGRA27. 
- *
- * @param[in] profileName Path to file with the default CMYK ICC profile 
- * @return true if the ICC profile was loaded correctly, false otherwise
+ * @return true if the configured ICC profile was loaded correctly, false if
+ * default had to be loaded instead
  */
-bool IccConverter::setDefaultCMYKProfile(const std::string& profileName){
-	m_defaultCMYKProfile.loadFromFile(profileName);
+bool IccConverter::loadDefaultCMYKProfile(){
+	m_defaultCMYKProfile.loadFromFile(m_defaultCMYKProfileName);
 	if (!m_defaultCMYKProfile.isValid()) {
 		m_defaultCMYKProfile.loadFromMem((char*)iccFOGRA27,iccFOGRA27_size);
 		return false;
@@ -114,16 +161,14 @@ bool IccConverter::setDefaultCMYKProfile(const std::string& profileName){
 }
 
 /**
- * Sets the ICC profile that will be used by default as source profile 
- * when there is no embedded profile in a source image in Grayscale color space. 
+ * Loads the configured default input profile for source files in the
+ * Grayscale color space. If loading fails, defaults to D50 Gamma 2.2 Grayscale. 
  *
- * Defaults to D50 Gamma-2.2 Grayscale profile 
- *
- * @param[in] profileName Path to file with the default Grayscale ICC profile 
- * @return true if the ICC profile was loaded correctly, false otherwise
+ * @return true if the configured ICC profile was loaded correctly, false if
+ * default had to be loaded instead
  */
-bool IccConverter::setDefaultGrayProfile(const std::string& profileName) {
-	m_defaultGrayProfile.loadFromFile(profileName);
+bool IccConverter::loadDefaultGrayProfile() {
+	m_defaultGrayProfile.loadFromFile(m_defaultGrayProfileName);
 	if (!m_defaultGrayProfile.isValid()) {
 		m_defaultGrayProfile.loadGray(2.2);
 		return false;
@@ -165,18 +210,19 @@ bool IccConverter::setIntent(int intent) {
  */
 bool IccConverter::convert(const std::string& file) {
 	// Generate input file name
-	m_file = m_inputFolder + "/" + file;
-	std::cout << "Processing " << m_file << ": ";
+	std::string theFile = m_inputFolder + "/" + file;
+	std::cout << "Processing " << theFile << ": ";
+	std::cout.flush();
 
-	// Check parameters
+	// Check valid output profile 
 	if (!m_outputProfile.isValid()) {
-		m_outputProfile.loadSRGB();	
+		loadOutputProfile();		
 	}
 
 	// Open source file
 	FILE* f;
-	if ((f = fopen(m_file.c_str(), "rb")) == NULL) {
-		std::cerr << "Failed to open " << m_file << std::endl;
+	if ((f = fopen(theFile.c_str(), "rb")) == NULL) {
+		std::cerr << "Failed to open " << theFile << std::endl;
 		return false;
 	}
 	jpeg_stdio_src(&m_dinfo,f);
@@ -185,7 +231,7 @@ bool IccConverter::convert(const std::string& file) {
 	FILE* fOut;
 	std::string outputFile = m_outputFolder + "/" + file;
 	if ((fOut = fopen(outputFile.c_str(), "wb")) == NULL) {
-		std::cerr << "Failed to write  " << m_file << std::endl;
+		std::cerr << "Failed to write  " << outputFile << std::endl;
 		fclose(f);
 		return false;
 	}
@@ -197,23 +243,23 @@ bool IccConverter::convert(const std::string& file) {
 
 	// Determine input profile
 	IccProfile inputProfile;
-	if (!inputProfile.loadFromFile(m_file)) {
+	if (!inputProfile.loadFromFile(theFile)) {
 		switch (m_dinfo.out_color_space) {
 			case JCS_GRAYSCALE:
 				if (!m_defaultGrayProfile.isValid()) {
-					m_defaultGrayProfile.loadGray(2.2);
+					loadDefaultGrayProfile();	
 				}
 				inputProfile = m_defaultGrayProfile;
 				break;
 			case JCS_CMYK:
 				if (!m_defaultCMYKProfile.isValid()) {
-					m_defaultCMYKProfile.loadFromMem((char*)iccFOGRA27,iccFOGRA27_size);
+					loadDefaultCMYKProfile();	
 				}
 				inputProfile = m_defaultCMYKProfile;
 				break;
 			case JCS_RGB:
 				if (!m_defaultRGBProfile.isValid()) {
-					m_defaultRGBProfile.loadSRGB();
+					loadDefaultRGBProfile();	
 				}
 				inputProfile = m_defaultRGBProfile;
 				break;
@@ -226,6 +272,7 @@ bool IccConverter::convert(const std::string& file) {
 		}
 	}
 	std::cout << "(" << inputProfile.getSource() << ": " << inputProfile.getName() << ") ";
+	std::cout.flush();
 	cmsUInt32Number inputFormat = 0;
 	switch (inputProfile.getNumChannels()) {
 		case 1:
