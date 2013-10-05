@@ -33,6 +33,7 @@ class IccConverter {
 		jpeg_error_mgr m_cerr;
 
 		void embedIccProfile(const IccProfile&,jpeg_compress_struct*);
+		std::string removeTrailingSlash(const std::string);
 };
 
 #endif

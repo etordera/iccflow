@@ -3,18 +3,21 @@
 
 #include <string>
 
+/**
+ * IccFlowApp class implements the iccflow application
+ */
 class IccFlowApp {
 
 	private:
-		int m_argc;
-		char** m_argv;
-		std::string m_inputFolder;
-		std::string m_outputFolder;
-		std::string m_outputProfile;
-		std::string m_defaultRGBProfile;
-		std::string m_defaultCMYKProfile;
-		std::string m_defaultGrayProfile;
-		int m_intent;
+		int m_argc;			/**< Command line argument count */
+		char** m_argv;		/**< Command line arguments */
+		std::string m_inputFolder;		/**< Folder where original images are located */
+		std::string m_outputFolder;		/**< Folder where processed images will be generated */
+		std::string m_outputProfile;	/**< Path to file with destination ICC Profile after conversion */
+		std::string m_defaultRGBProfile;	/**< Path to file with default RGB ICC Profile when none is found in source image */
+		std::string m_defaultCMYKProfile;	/**< Path to file with default GCMY ICC Profile when none is found in source image */
+		std::string m_defaultGrayProfile;	/**< Path to file with default Grayscale ICC Profile when none is found in source image */
+		int m_intent;		/**< Rendering intent to be used during color conversion */
 
 		bool parseArguments();
 
@@ -22,6 +25,5 @@ class IccFlowApp {
 		IccFlowApp(int,char**);
 		int run();
 };
-
 
 #endif

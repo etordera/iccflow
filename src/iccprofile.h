@@ -3,6 +3,10 @@
 
 #include <lcms2.h>
 
+/**
+ * IccProfile objects represent an ICC color profile.
+ *
+ */
 class IccProfile {
 	public:
 		IccProfile();
@@ -15,22 +19,32 @@ class IccProfile {
 		void loadGray(double);
 		bool isValid() const;
 		bool isValid();
-		cmsHPROFILE getHandle() const;
 		cmsHPROFILE getHandle();
+		cmsHPROFILE getHandle() const;
 		cmsUInt32Number getNumChannels();
+		std::string getSource();
+		std::string getSource() const;
+		std::string getName();
+		std::string getName() const;
 
 	private:
-		void read_bytes(std::ifstream&, char*, long);
-		bool read_bytes_compare(std::ifstream&, char*, long, char*);
-		unsigned int exif_read_word(const char*, const bool);
-		unsigned long exif_read_long(const char*, const bool);
-		bool get_icc_profile(const std::string, char**, unsigned long&, unsigned int&);
+		void readBytes(std::ifstream&, char*, long);
+		bool readBytesAndCompare(std::ifstream&, char*, long, char*);
+		unsigned int exifReadWord(const char*, const bool);
+		unsigned long exifReadLong(const char*, const bool);
+		bool extractIccProfile(const std::string, char**, unsigned long&, unsigned int&);
 		void clear();
+		std::string extractProfileName();
 
-		cmsHPROFILE m_hprofile;
+		cmsHPROFILE m_hprofile;			/**< Handle to corresponding LittleCMS library icc profile */
+		std::string m_profileSource; 	/**< Tells how the ICC profile was found (embedded, EXIF,...) */
+		std::string m_profileName;		/**< Name embedded in the ICC profile */
 
 };
 
+/**
+ * Enumeration of JPEG marker identification bytes
+ */
 enum JPEG_MARKERS {
 	JPEG_MARKER_APP0  = (char)0xE0,
 	JPEG_MARKER_APP1  = (char)0xE1,

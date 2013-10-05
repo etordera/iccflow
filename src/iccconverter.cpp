@@ -24,31 +24,47 @@ IccConverter::IccConverter() {
 	// Initialize JPEG compress objects
 	m_cinfo.err = jpeg_std_error(&m_cerr);
 	jpeg_create_compress(&m_cinfo);
-
-	// Initialize default profiles
-	m_outputProfile.loadSRGB();
-	m_defaultRGBProfile.loadSRGB();
-	m_defaultCMYKProfile.loadFromMem((char*)iccFOGRA27,iccFOGRA27_size);
-	m_defaultGrayProfile.loadGray(2.2);
 }
 
-
+/**
+ * Destructor frees resources associated with JPEG
+ * compression and decompression structs
+ */
 IccConverter::~IccConverter() {
 	// Destroy JPEG compress/decompress objects
 	jpeg_destroy_decompress(&m_dinfo);
 	jpeg_destroy_compress(&m_cinfo);
 }
 
+/**
+ * Sets the source folder where the application will look for JPEG
+ * images to process.
+ *
+ * @param[in] inputFolder Path to the source folder
+ */
 void IccConverter::setInputFolder(const std::string& inputFolder) {
-	// TODO: check for existing trailing slash
-	m_inputFolder = inputFolder;
+	m_inputFolder = removeTrailingSlash(inputFolder);
 }
 
+/**
+ * Sets the destination folder where processed images will 
+ * be output. 
+ *
+ * @param[out] outputFolder Path to the destination folder
+ */
 void IccConverter::setOutputFolder(const std::string& outputFolder) {
-	// TODO: check for existing trailing slash
-	m_outputFolder = outputFolder;
+	m_outputFolder = removeTrailingSlash(outputFolder);
 }
 
+/**
+ * Sets the ICC profile that will be used as destination in 
+ * the color conversion process.
+ *
+ * Defaults to sRGB. 
+ *
+ * @param[in] profileName Path to file with the output ICC profile 
+ * @return true if the ICC profile was loaded correctly, false otherwise
+ */
 bool IccConverter::setOutputProfile(const std::string& profileName){
 	m_outputProfile.loadFromFile(profileName);
 	if (!m_outputProfile.isValid()) {
@@ -59,6 +75,15 @@ bool IccConverter::setOutputProfile(const std::string& profileName){
 	return true;
 }
 
+/**
+ * Sets the ICC profile that will be used by default as source profile 
+ * when there is no embedded profile in a source image in RGB color space. 
+ *
+ * Defaults to sRGB. 
+ *
+ * @param[in] profileName Path to file with the default RGB ICC profile 
+ * @return true if the ICC profile was loaded correctly, false otherwise
+ */
 bool IccConverter::setDefaultRGBProfile(const std::string& profileName){
 	m_defaultRGBProfile.loadFromFile(profileName);
 	if (!m_defaultRGBProfile.isValid()) {
@@ -69,6 +94,15 @@ bool IccConverter::setDefaultRGBProfile(const std::string& profileName){
 	return true;
 }
 
+/**
+ * Sets the ICC profile that will be used by default as source profile 
+ * when there is no embedded profile in a source image in CMYK color space. 
+ *
+ * Defaults to FOGRA27. 
+ *
+ * @param[in] profileName Path to file with the default CMYK ICC profile 
+ * @return true if the ICC profile was loaded correctly, false otherwise
+ */
 bool IccConverter::setDefaultCMYKProfile(const std::string& profileName){
 	m_defaultCMYKProfile.loadFromFile(profileName);
 	if (!m_defaultCMYKProfile.isValid()) {
@@ -79,6 +113,15 @@ bool IccConverter::setDefaultCMYKProfile(const std::string& profileName){
 	return true;
 }
 
+/**
+ * Sets the ICC profile that will be used by default as source profile 
+ * when there is no embedded profile in a source image in Grayscale color space. 
+ *
+ * Defaults to D50 Gamma-2.2 Grayscale profile 
+ *
+ * @param[in] profileName Path to file with the default Grayscale ICC profile 
+ * @return true if the ICC profile was loaded correctly, false otherwise
+ */
 bool IccConverter::setDefaultGrayProfile(const std::string& profileName) {
 	m_defaultGrayProfile.loadFromFile(profileName);
 	if (!m_defaultGrayProfile.isValid()) {
@@ -92,7 +135,7 @@ bool IccConverter::setDefaultGrayProfile(const std::string& profileName) {
 /**
  * Sets the rendering intent for the color conversion.
  *
- * @param intent Rendering intent integer identifier, as specified in LittleCMS library
+ * @param[in] intent Rendering intent integer identifier, as specified in LittleCMS library
  * @return true if a valid intent has been set, false otherwise
  */
 bool IccConverter::setIntent(int intent) {
@@ -107,6 +150,19 @@ bool IccConverter::setIntent(int intent) {
 	return success;
 }
 
+/**
+ * Performs ICC color conversion in a JPEG file 
+ *
+ * The file will be looked for in the source folder previously set
+ * by calling (@ref IccConverter#setInputFolder) method. Processed JPEG will be saved
+ * with the same name in the output folder previously set by calling
+ * (@ref IccConverter#setOutputFolder) method.
+ *
+ * @param[in] file Name of the file to process 
+ * @return true if conversion is successful, false otherwise
+ * @see IccConverter#setInputFolder
+ * @see IccConverter#setOutputFolder
+ */
 bool IccConverter::convert(const std::string& file) {
 	// Generate input file name
 	m_file = m_inputFolder + "/" + file;
@@ -114,8 +170,7 @@ bool IccConverter::convert(const std::string& file) {
 
 	// Check parameters
 	if (!m_outputProfile.isValid()) {
-		std::cout << "No output profile set" << std::endl;
-		return false;
+		m_outputProfile.loadSRGB();	
 	}
 
 	// Open source file
@@ -145,12 +200,21 @@ bool IccConverter::convert(const std::string& file) {
 	if (!inputProfile.loadFromFile(m_file)) {
 		switch (m_dinfo.out_color_space) {
 			case JCS_GRAYSCALE:
+				if (!m_defaultGrayProfile.isValid()) {
+					m_defaultGrayProfile.loadGray(2.2);
+				}
 				inputProfile = m_defaultGrayProfile;
 				break;
 			case JCS_CMYK:
+				if (!m_defaultCMYKProfile.isValid()) {
+					m_defaultCMYKProfile.loadFromMem((char*)iccFOGRA27,iccFOGRA27_size);
+				}
 				inputProfile = m_defaultCMYKProfile;
 				break;
 			case JCS_RGB:
+				if (!m_defaultRGBProfile.isValid()) {
+					m_defaultRGBProfile.loadSRGB();
+				}
 				inputProfile = m_defaultRGBProfile;
 				break;
 			default:
@@ -161,6 +225,7 @@ bool IccConverter::convert(const std::string& file) {
 				return false;	
 		}
 	}
+	std::cout << "(" << inputProfile.getSource() << ": " << inputProfile.getName() << ") ";
 	cmsUInt32Number inputFormat = 0;
 	switch (inputProfile.getNumChannels()) {
 		case 1:
@@ -256,6 +321,17 @@ bool IccConverter::convert(const std::string& file) {
 	return true;
 }
 
+
+/**
+ * Embeds an ICC profile in a JPEG file.
+ *
+ * Designed to work on a jpeglib JPEG compression process, requires as parameter
+ * the jpeg_compress_struct object used by jpeglib for managing compression data.
+ * Has to be called after jpeg_start_compress and before any jpeg_write_scanlines.
+ *
+ * @param[in] profile The ICC profile to embed
+ * @param[in] p_cinfo Pointer to the jpeg_compress_struct used by jpeglib for JPEG compression
+ */
 void IccConverter::embedIccProfile(const IccProfile& profile, jpeg_compress_struct* p_cinfo) {
 	// Save profile to memory 
 	cmsUInt32Number outIccLength = 0;
@@ -292,3 +368,18 @@ void IccConverter::embedIccProfile(const IccProfile& profile, jpeg_compress_stru
 	delete[] outIccBuffer;
 }
 
+/**
+ * Removes last slash character from a string, only if the string
+ * actually ends in a slash. If the original string does not have
+ * a trailing slash, it is returned untouched.
+ *
+ * @param[in] str The string to process
+ * @return A string without the trailing slash
+ */
+std::string IccConverter::removeTrailingSlash(const std::string str) {
+	std::string newStr(str);
+	if (str.compare(str.length()-1,1,"/") == 0) {
+		newStr = newStr.substr(0,str.length()-1);
+	}
+	return newStr;
+}

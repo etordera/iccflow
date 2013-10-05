@@ -1,9 +1,9 @@
 #include "iccflowapp.h"
 
 /**
-* IccFlow
+* IccFlow main function
 *
-* Batch icc profile conversion 
+* Batch ICC profile conversion 
 *
 */
 int main(int argc, char** argv) {
