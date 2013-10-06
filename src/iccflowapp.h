@@ -18,6 +18,7 @@ class IccFlowApp {
 		std::string m_defaultCMYKProfile;	/**< Path to file with default GCMY ICC Profile when none is found in source image */
 		std::string m_defaultGrayProfile;	/**< Path to file with default Grayscale ICC Profile when none is found in source image */
 		int m_intent;		/**< Rendering intent to be used during color conversion */
+		int m_jpegQuality;	/**< Quality parameter for output JPEG compression (0-100) */
 
 		bool parseArguments();
 

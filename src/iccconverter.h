@@ -16,6 +16,7 @@ class IccConverter {
 		void setDefaultCMYKProfile(const std::string&);
 		void setDefaultGrayProfile(const std::string&);
 		bool setIntent(int);
+		bool setJpegQuality(int);
 		bool convert(const std::string&);
 
 	private:
@@ -30,6 +31,7 @@ class IccConverter {
 		std::string m_defaultCMYKProfileName;
 		std::string m_defaultGrayProfileName;
 		int m_intent;
+		int m_jpegQuality;		/**< Quality parameter used for output JPEG compression */
 		jpeg_decompress_struct m_dinfo;
 		jpeg_error_mgr m_derr;
 		jpeg_compress_struct m_cinfo;

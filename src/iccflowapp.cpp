@@ -14,7 +14,9 @@
  */
 IccFlowApp::IccFlowApp(int argc, char** argv)
 :m_argc(argc),
- m_argv(argv)
+ m_argv(argv),
+ m_intent(INTENT_PERCEPTUAL),
+ m_jpegQuality(85)
 {
 	if (m_argc < 0) {
 		m_argc = 0;
@@ -25,7 +27,6 @@ IccFlowApp::IccFlowApp(int argc, char** argv)
 	m_defaultRGBProfile.clear();
 	m_defaultCMYKProfile.clear();
 	m_defaultGrayProfile.clear();
-	m_intent = INTENT_PERCEPTUAL;
 }
 
 
@@ -49,6 +50,7 @@ int IccFlowApp::run() {
 	converter.setDefaultCMYKProfile(m_defaultCMYKProfile);
 	converter.setDefaultGrayProfile(m_defaultGrayProfile);
 	converter.setIntent(m_intent);
+	converter.setJpegQuality(m_jpegQuality);
 
 	// Open input folder
 	DIR* dir = NULL;
@@ -97,6 +99,7 @@ bool IccFlowApp::parseArguments() {
 	m_defaultCMYKProfile.clear();
 	m_defaultGrayProfile.clear();
 	m_intent = INTENT_PERCEPTUAL;
+	m_jpegQuality = 85;
 
 	// Traverse and analyze arguments
 	bool helpShown = false;
@@ -137,6 +140,10 @@ bool IccFlowApp::parseArguments() {
 					m_intent = INTENT_RELATIVE_COLORIMETRIC;
 				}
 			}
+		} else if (std::string(m_argv[i]) == "-q") {
+			if (++i < m_argc) {
+				m_jpegQuality = atoi(m_argv[i]);
+			}
 		}	
 	}
 
@@ -150,6 +157,10 @@ bool IccFlowApp::parseArguments() {
 		}
 		if (m_outputFolder == "") {
 			std::cerr << "Output folder required, please specify with -o option" << std::endl;
+			success = false;
+		}
+		if ((m_jpegQuality < 0) || (m_jpegQuality > 100)) {
+			std::cerr << "Invalid JPEG quality value (should be 0 to 100)" << std::endl;
 			success = false;
 		}
 	}

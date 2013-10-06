@@ -196,6 +196,23 @@ bool IccConverter::setIntent(int intent) {
 }
 
 /**
+ * Sets the quality parameter used for output JPEG compression. Valid values in the range
+ * from 0 to 100. 
+ *
+ * @param[in] jpegQuality JPEG quality parameter (integer from 0 to 100)
+ * @return true if a valid parameter has been set, false otherwise
+ */
+bool IccConverter::setJpegQuality(int jpegQuality) {
+	bool success = false;
+	if ((jpegQuality>=0) && (jpegQuality<=100)) {
+		m_jpegQuality = jpegQuality;
+		success = true;
+	} 
+
+	return success;
+}
+
+/**
  * Performs ICC color conversion in a JPEG file 
  *
  * The file will be looked for in the source folder previously set
@@ -318,6 +335,7 @@ bool IccConverter::convert(const std::string& file) {
 			return false;	
 	}
 	jpeg_set_defaults(&m_cinfo);
+	jpeg_set_quality(&m_cinfo,m_jpegQuality,true);
 
 	// Start output compression
 	jpeg_start_compress(&m_cinfo,TRUE);
