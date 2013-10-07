@@ -21,6 +21,7 @@ class IccFlowApp {
 		int m_jpegQuality;	/**< Quality parameter for output JPEG compression (0-100) */
 
 		bool parseArguments();
+		void showHelp();
 
 	public:
 		IccFlowApp(int,char**);

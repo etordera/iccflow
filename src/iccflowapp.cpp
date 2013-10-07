@@ -105,7 +105,7 @@ bool IccFlowApp::parseArguments() {
 	bool helpShown = false;
 	for (int i=0; i<m_argc; i++) {
 		if (std::string(m_argv[i]) == "-h") {
-			std::cout << "Help is coming!" << std::endl;
+			showHelp();
 			helpShown = true;
 		} else if (std::string(m_argv[i]) == "-i") {
 			if (++i < m_argc) {
@@ -133,12 +133,7 @@ bool IccFlowApp::parseArguments() {
 			}
 		} else if (std::string(m_argv[i]) == "-c") {
 			if (++i < m_argc) {
-				std::string intent(m_argv[i]);
-				if (intent == "PERCEPTUAL") {
-					m_intent = INTENT_PERCEPTUAL;
-				} else if (intent == "RELATIVE") {
-					m_intent = INTENT_RELATIVE_COLORIMETRIC;
-				}
+				m_intent = atoi(m_argv[i]);
 			}
 		} else if (std::string(m_argv[i]) == "-q") {
 			if (++i < m_argc) {
@@ -168,3 +163,37 @@ bool IccFlowApp::parseArguments() {
 	return success;
 }
 
+/**
+ * Output help message showing command-line options
+ */
+void IccFlowApp::showHelp() {
+	std::cout << "iccflow -i inputFolder -o outputFolder [options]" << std::endl;
+	std::cout << "Performs ICC color transformation on JPEG files." << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << "Mandatory parameters:" << std::endl;
+	std::cout << "  -i inputFolder:   Source folder containing the original JPEG images." << std::endl;
+	std::cout << "  -o outputFolder:  Destination folder where converted images will be saved." << std::endl;
+	std::cout << std::endl;
+	std::cout << std::endl;
+	std::cout << "Optional parameters:" << std::endl;
+	std::cout << "  -p outputProfile:   Output profile for the color transformation (path to .icc/.icm file)." << std::endl;
+	std::cout << "                      Defaults to sRGB" << std::endl;
+	std::cout << std::endl;
+	std::cout << "  -prgb rgbProfile:   Default RGB input profile when none is found in the source JPEG file (path to .icc/.icm file)." << std::endl;
+	std::cout << "                      Defaults to sRGB" << std::endl;
+	std::cout << std::endl;
+	std::cout << "  -pcmyk cmykProfile: Default CMYK input profile when none is found in the source JPEG file (path to .icc/.icm file)." << std::endl;
+	std::cout << "                      Defaults to FOGRA27" << std::endl;
+	std::cout << std::endl;
+	std::cout << "  -pgray grayProfile: Default Grayscale input profile when none is found in the source JPEG file (path to .icc/.icm file)." << std::endl;
+	std::cout << "                      Defaults to D50 Gamma-2.2 Grayscale" << std::endl;
+	std::cout << std::endl;
+	std::cout << "  -c intent_code:     Rendering intent to be used during color transformation. Possible values:" << std::endl;
+	std::cout << "                      0: Perceptual (DEFAULT)" << std::endl;
+	std::cout << "                      1: Relative colorimetric" << std::endl;
+	std::cout << "                      2: Saturation" << std::endl;
+	std::cout << "                      3: Absolute colorimetric" << std::endl;
+	std::cout << std::endl;
+	std::cout << "  -q jpegQuality:    JPEG quality level for output compression (0-100, defaults to 85)" << std::endl; 
+}

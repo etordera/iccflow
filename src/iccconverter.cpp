@@ -11,7 +11,10 @@
  * of JPEG images
  *
  */
-IccConverter::IccConverter() {
+IccConverter::IccConverter()
+:m_intent(0),
+ m_jpegQuality(85)
+{
 	// Initialize variables
 	m_inputFolder.clear();
 	m_outputFolder.clear();
@@ -179,6 +182,11 @@ bool IccConverter::loadDefaultGrayProfile() {
 
 /**
  * Sets the rendering intent for the color conversion.
+ * Possible values:
+ *    0: Perceptual
+ *    1: Relative colorimetric
+ *    2: Saturation
+ *    3: Absolute colorimetric
  *
  * @param[in] intent Rendering intent integer identifier, as specified in LittleCMS library
  * @return true if a valid intent has been set, false otherwise
