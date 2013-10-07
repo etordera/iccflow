@@ -1,4 +1,5 @@
 #include <iostream>
+#include <iomanip>
 #include <jpeglib.h>
 #include <fstream>
 #include <cstring>
@@ -237,7 +238,6 @@ bool IccConverter::convert(const std::string& file) {
 	// Generate input file name
 	std::string theFile = m_inputFolder + "/" + file;
 	std::cout << "Processing " << theFile << ": ";
-	std::cout.flush();
 
 	// Check valid output profile 
 	if (!m_outputProfile.isValid()) {
@@ -371,6 +371,7 @@ bool IccConverter::convert(const std::string& file) {
 
 	// Read and process image lines
 	while (m_dinfo.output_scanline < m_dinfo.output_height) {
+		std::cout << std::setw(3) << (100*m_dinfo.output_scanline/m_dinfo.output_height) << "%\b\b\b\b";
 		jpeg_read_scanlines(&m_dinfo,&buffer_in[0],1);
 		cmsDoTransform(hTransform,(const void *) buffer_in[0],(void *) buffer_out[0],(cmsUInt32Number) m_dinfo.output_width);
 		jpeg_write_scanlines(&m_cinfo,&buffer_out[0],1);
