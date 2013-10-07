@@ -103,7 +103,7 @@ bool IccFlowApp::parseArguments() {
 
 	// Traverse and analyze arguments
 	bool helpShown = false;
-	for (int i=0; i<m_argc; i++) {
+	for (int i=1; i<m_argc; i++) {
 		if (std::string(m_argv[i]) == "-h") {
 			showHelp();
 			helpShown = true;
@@ -142,9 +142,14 @@ bool IccFlowApp::parseArguments() {
 		}	
 	}
 
+	// Show help hint if no parameters found
+	if (m_argc == 1) {
+		std::cout << "Use -h option for help" << std::endl;
+	}
+
+	// Check parsed parameters 
 	bool success = false;
 	if (!helpShown) {
-		// Check if required parameters have been set
 		success = true;
 		if (m_inputFolder == "") {
 			std::cerr << "Input folder required, please specify with -i option" << std::endl;
@@ -152,6 +157,10 @@ bool IccFlowApp::parseArguments() {
 		}
 		if (m_outputFolder == "") {
 			std::cerr << "Output folder required, please specify with -o option" << std::endl;
+			success = false;
+		}
+		if ((m_intent < 0) || (m_intent > 3)) {
+			std::cerr << "Invalid rendering intent code (should be 0 to 3)" << std::endl;
 			success = false;
 		}
 		if ((m_jpegQuality < 0) || (m_jpegQuality > 100)) {
@@ -170,11 +179,9 @@ void IccFlowApp::showHelp() {
 	std::cout << "iccflow -i inputFolder -o outputFolder [options]" << std::endl;
 	std::cout << "Performs ICC color transformation on JPEG files." << std::endl;
 	std::cout << std::endl;
-	std::cout << std::endl;
 	std::cout << "Mandatory parameters:" << std::endl;
 	std::cout << "  -i inputFolder:   Source folder containing the original JPEG images." << std::endl;
 	std::cout << "  -o outputFolder:  Destination folder where converted images will be saved." << std::endl;
-	std::cout << std::endl;
 	std::cout << std::endl;
 	std::cout << "Optional parameters:" << std::endl;
 	std::cout << "  -p outputProfile:   Output profile for the color transformation (path to .icc/.icm file)." << std::endl;
@@ -189,7 +196,7 @@ void IccFlowApp::showHelp() {
 	std::cout << "  -pgray grayProfile: Default Grayscale input profile when none is found in the source JPEG file (path to .icc/.icm file)." << std::endl;
 	std::cout << "                      Defaults to D50 Gamma-2.2 Grayscale" << std::endl;
 	std::cout << std::endl;
-	std::cout << "  -c intent_code:     Rendering intent to be used during color transformation. Possible values:" << std::endl;
+	std::cout << "  -c intentCode:      Rendering intent to be used during color transformation. Possible values:" << std::endl;
 	std::cout << "                      0: Perceptual (DEFAULT)" << std::endl;
 	std::cout << "                      1: Relative colorimetric" << std::endl;
 	std::cout << "                      2: Saturation" << std::endl;
