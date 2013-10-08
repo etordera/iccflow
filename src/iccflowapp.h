@@ -22,6 +22,7 @@ class IccFlowApp {
 
 		bool parseArguments();
 		void showHelp();
+		bool copyFile(const std::string&,const std::string&);
 
 	public:
 		IccFlowApp(int,char**);

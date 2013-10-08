@@ -1,6 +1,7 @@
 #include "iccflowapp.h"
 #include "iccconverter.h"
 #include <iostream>
+#include <fstream>
 #include <dirent.h>
 #include <algorithm>
 #include <lcms2.h>
@@ -62,15 +63,21 @@ int IccFlowApp::run() {
 
 	// Traverse directory and process JPEG files
 	dirent* ent = NULL;
-	std::string file;
+	std::string file,fileLow;
 	bool success = true;
 	while ((ent = readdir(dir))) {
 		if (ent->d_type == DT_REG) {
 			file = ent->d_name;
-			transform(file.begin(),file.end(),file.begin(),::tolower);
-			if ((file.rfind(".jpg") == file.size()-4) || (file.rfind(".jpeg") == file.size()-5)) {
-				file = ent->d_name;
+			fileLow = file;
+			transform(fileLow.begin(),fileLow.end(),fileLow.begin(),::tolower);
+			if ((fileLow.rfind(".jpg") == fileLow.size()-4) || (fileLow.rfind(".jpeg") == fileLow.size()-5)) {
 				if (!converter.convert(file)) {
+					success = false;
+					copyFile(m_inputFolder+"/"+file,m_outputFolder+"/"+file);
+				}
+			} else {
+				// Just copy all non-JPEG files
+				if (!copyFile(m_inputFolder+"/"+file,m_outputFolder+"/"+file)) {
 					success = false;
 				}
 			}
@@ -203,4 +210,41 @@ void IccFlowApp::showHelp() {
 	std::cout << "                      3: Absolute colorimetric" << std::endl;
 	std::cout << std::endl;
 	std::cout << "  -q jpegQuality:    JPEG quality level for output compression (0-100, defaults to 85)" << std::endl; 
+}
+
+
+ /**
+ * Copies a file
+ *
+ * @param[in] srcFile Path to source file
+ * @param[out] dstFile Path to destination file
+ * @return true if copy is successful, false if some error happened
+ */
+bool IccFlowApp::copyFile(const std::string& srcFile, const std::string& dstFile) {
+	// Create streams and enable exceptions
+	std::ifstream src;
+	src.exceptions(std::ifstream::failbit);
+	std::ofstream dst;
+	dst.exceptions(std::ifstream::failbit);
+	
+	// Copy file
+	bool success = true;
+	try {
+		src.open(srcFile.c_str(),std::ios::binary);
+		dst.open(dstFile.c_str(),std::ios::binary);
+		dst << src.rdbuf();
+	} catch (std::ios::failure e) {
+		std::cerr << "Error while copying " << srcFile << " to " << dstFile << std::endl;
+		success = false;
+	}
+
+	// Close streams
+	if (src.is_open()) {
+		src.close();
+	}
+	if (dst.is_open()) {
+		dst.close();
+	}
+
+	return success;
 }
