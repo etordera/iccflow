@@ -1,9 +1,23 @@
 #ifndef ICCCONVERTER_H
 #define ICCCONVERTER_H
 
+#include <setjmp.h>
 #include <jpeglib.h>
 #include "iccprofile.h"
 
+/**
+ * Custor error manager struct for handling
+ * libjpeg errors
+ */
+struct my_error_mgr {
+  struct jpeg_error_mgr jerr;	/**< Standard libjpeg error manager */
+  jmp_buf setjmp_buffer;		/**< Additional field for controlling return point on error */
+};
+METHODDEF(void) my_error_exit(j_common_ptr cinfo);
+
+/**
+ * IccConverter objects manage ICC color transforms on JPEG files
+ */
 class IccConverter {
 
 	public:
@@ -33,9 +47,9 @@ class IccConverter {
 		int m_intent;
 		int m_jpegQuality;		/**< Quality parameter used for output JPEG compression */
 		jpeg_decompress_struct m_dinfo;
-		jpeg_error_mgr m_derr;
+		my_error_mgr m_derr;
 		jpeg_compress_struct m_cinfo;
-		jpeg_error_mgr m_cerr;
+		my_error_mgr m_cerr;
 
 		bool loadOutputProfile();
 		bool loadDefaultRGBProfile();

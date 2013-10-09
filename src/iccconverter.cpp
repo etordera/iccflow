@@ -3,6 +3,7 @@
 #include <jpeglib.h>
 #include <fstream>
 #include <cstring>
+#include <setjmp.h>
 #include "iccprofile.h"
 #include "iccconverter.h"
 #include "icc_fogra27.h"
@@ -25,11 +26,13 @@ IccConverter::IccConverter()
 	m_defaultGrayProfileName.clear();
 
 	// Initialize JPEG decompress objects
-	m_dinfo.err = jpeg_std_error(&m_derr);
+	m_dinfo.err = jpeg_std_error(&m_derr.jerr);
+  	m_derr.jerr.error_exit = my_error_exit;
 	jpeg_create_decompress(&m_dinfo);
 
 	// Initialize JPEG compress objects
-	m_cinfo.err = jpeg_std_error(&m_cerr);
+	m_cinfo.err = jpeg_std_error(&m_cerr.jerr);
+  	m_cerr.jerr.error_exit = my_error_exit;
 	jpeg_create_compress(&m_cinfo);
 }
 
@@ -244,152 +247,194 @@ bool IccConverter::convert(const std::string& file) {
 		loadOutputProfile();		
 	}
 
-	// Open source file
-	FILE* f;
-	if ((f = fopen(theFile.c_str(), "rb")) == NULL) {
-		std::cerr << "Failed to open " << theFile << std::endl;
-		return false;
-	}
-	jpeg_stdio_src(&m_dinfo,f);
+	FILE* f = NULL;
+	FILE* fOut = NULL;
+	JSAMPLE* buffer_in[1];
+	buffer_in[0] = NULL;
+	JSAMPLE* buffer_out[1];
+	buffer_out[0] = NULL;
+	cmsHTRANSFORM hTransform = NULL; 
+	try {
 
-	// Open output file
-	FILE* fOut;
-	std::string outputFile = m_outputFolder + "/" + file;
-	if ((fOut = fopen(outputFile.c_str(), "wb")) == NULL) {
-		std::cerr << "Failed to write  " << outputFile << std::endl;
-		fclose(f);
-		return false;
-	}
-	jpeg_stdio_dest(&m_cinfo,fOut);
+		// Handle errors in the JPEG decompression library
+		if (setjmp(m_derr.setjmp_buffer)) {
+			throw 1;
+		}
+		// Handle errors in the JPEG compression library
+		if (setjmp(m_cerr.setjmp_buffer)) {
+			throw 2;
+		}
 
-	// Start input decompression
-	jpeg_read_header(&m_dinfo, TRUE);
-	jpeg_start_decompress(&m_dinfo);
+		// Open source file
+		if ((f = fopen(theFile.c_str(), "rb")) == NULL) {
+			std::cerr << "Failed to open " << theFile << std::endl;
+			return false;
+		}
+		jpeg_stdio_src(&m_dinfo,f);
 
-	// Determine input profile
-	IccProfile inputProfile;
-	if (!inputProfile.loadFromFile(theFile)) {
-		switch (m_dinfo.out_color_space) {
-			case JCS_GRAYSCALE:
-				if (!m_defaultGrayProfile.isValid()) {
-					loadDefaultGrayProfile();	
-				}
-				inputProfile = m_defaultGrayProfile;
+		// Open output file
+		std::string outputFile = m_outputFolder + "/" + file;
+		if ((fOut = fopen(outputFile.c_str(), "wb")) == NULL) {
+			std::cerr << "Failed to write  " << outputFile << std::endl;
+			fclose(f);
+			return false;
+		}
+		jpeg_stdio_dest(&m_cinfo,fOut);
+
+		// Start input decompression
+		jpeg_read_header(&m_dinfo, TRUE);
+		jpeg_start_decompress(&m_dinfo);
+
+		// Determine input profile
+		IccProfile inputProfile;
+		if (!inputProfile.loadFromFile(theFile)) {
+			switch (m_dinfo.out_color_space) {
+				case JCS_GRAYSCALE:
+					if (!m_defaultGrayProfile.isValid()) {
+						loadDefaultGrayProfile();	
+					}
+					inputProfile = m_defaultGrayProfile;
+					break;
+				case JCS_CMYK:
+					if (!m_defaultCMYKProfile.isValid()) {
+						loadDefaultCMYKProfile();	
+					}
+					inputProfile = m_defaultCMYKProfile;
+					break;
+				case JCS_RGB:
+					if (!m_defaultRGBProfile.isValid()) {
+						loadDefaultRGBProfile();	
+					}
+					inputProfile = m_defaultRGBProfile;
+					break;
+				default:
+					std::cerr << "Unsupported color space" << std::endl;
+					fclose(f);
+					fclose(fOut);
+					jpeg_finish_decompress(&m_dinfo);
+					return false;	
+			}
+		}
+		std::cout << "(" << inputProfile.getSource() << ": " << inputProfile.getName() << ") ";
+		std::cout.flush();
+		cmsUInt32Number inputFormat = 0;
+		switch (inputProfile.getNumChannels()) {
+			case 1:
+				inputFormat = TYPE_GRAY_8;
 				break;
-			case JCS_CMYK:
-				if (!m_defaultCMYKProfile.isValid()) {
-					loadDefaultCMYKProfile();	
-				}
-				inputProfile = m_defaultCMYKProfile;
+			case 3:
+				inputFormat = TYPE_RGB_8;
 				break;
-			case JCS_RGB:
-				if (!m_defaultRGBProfile.isValid()) {
-					loadDefaultRGBProfile();	
-				}
-				inputProfile = m_defaultRGBProfile;
+			case 4:
+				inputFormat = TYPE_CMYK_8_REV;
 				break;
 			default:
-				std::cerr << "Unsupported color space" << std::endl;
+				std::cerr << "Unsupported number of channels in input profile" << std::endl;
 				fclose(f);
 				fclose(fOut);
 				jpeg_finish_decompress(&m_dinfo);
 				return false;	
 		}
-	}
-	std::cout << "(" << inputProfile.getSource() << ": " << inputProfile.getName() << ") ";
-	std::cout.flush();
-	cmsUInt32Number inputFormat = 0;
-	switch (inputProfile.getNumChannels()) {
-		case 1:
-			inputFormat = TYPE_GRAY_8;
-			break;
-		case 3:
-			inputFormat = TYPE_RGB_8;
-			break;
-		case 4:
-			inputFormat = TYPE_CMYK_8_REV;
-			break;
-		default:
-			std::cerr << "Unsupported number of channels in input profile" << std::endl;
-			fclose(f);
-			fclose(fOut);
-			jpeg_finish_decompress(&m_dinfo);
-			return false;	
-	}
 
-	// Define output compression parameters
-	m_cinfo.image_width = m_dinfo.output_width;
-	m_cinfo.image_height = m_dinfo.output_height;
-	m_cinfo.input_components = m_outputProfile.getNumChannels();
-	cmsUInt32Number outputFormat = 0;
-	switch (m_outputProfile.getNumChannels()) {
-		case 1:
-			m_cinfo.in_color_space = JCS_GRAYSCALE;
-			outputFormat = TYPE_GRAY_8;
-			break;
-		case 3:
-			m_cinfo.in_color_space = JCS_RGB;
-			outputFormat = TYPE_RGB_8;
-			break;
-		case 4:
-			m_cinfo.in_color_space = JCS_CMYK;
-			outputFormat = TYPE_CMYK_8_REV;
-			break;
-		default:
-			std::cerr << "Unsupported number of channels in output profile" << std::endl;
-			fclose(f);
-			fclose(fOut);
-			jpeg_finish_decompress(&m_dinfo);
-			return false;	
-	}
-	jpeg_set_defaults(&m_cinfo);
-	jpeg_set_quality(&m_cinfo,m_jpegQuality,true);
+		// Define output compression parameters
+		m_cinfo.image_width = m_dinfo.output_width;
+		m_cinfo.image_height = m_dinfo.output_height;
+		m_cinfo.input_components = m_outputProfile.getNumChannels();
+		cmsUInt32Number outputFormat = 0;
+		switch (m_outputProfile.getNumChannels()) {
+			case 1:
+				m_cinfo.in_color_space = JCS_GRAYSCALE;
+				outputFormat = TYPE_GRAY_8;
+				break;
+			case 3:
+				m_cinfo.in_color_space = JCS_RGB;
+				outputFormat = TYPE_RGB_8;
+				break;
+			case 4:
+				m_cinfo.in_color_space = JCS_CMYK;
+				outputFormat = TYPE_CMYK_8_REV;
+				break;
+			default:
+				std::cerr << "Unsupported number of channels in output profile" << std::endl;
+				fclose(f);
+				fclose(fOut);
+				jpeg_finish_decompress(&m_dinfo);
+				return false;	
+		}
+		jpeg_set_defaults(&m_cinfo);
+		jpeg_set_quality(&m_cinfo,m_jpegQuality,true);
 
-	// Start output compression
-	jpeg_start_compress(&m_cinfo,TRUE);
+		// Start output compression
+		jpeg_start_compress(&m_cinfo,TRUE);
 
-	// Embed output profile
-	embedIccProfile(m_outputProfile,&m_cinfo);
+		// Embed output profile
+		embedIccProfile(m_outputProfile,&m_cinfo);
 
-	// Create buffer for input 
-	long line_width = m_dinfo.output_width*m_dinfo.output_components;
-	JSAMPLE* buffer_in[1];
-	buffer_in[0] = new JSAMPLE[line_width];
+		// Create buffer for input 
+		long line_width = m_dinfo.output_width*m_dinfo.output_components;
+		buffer_in[0] = new JSAMPLE[line_width];
 
-	// Create buffer for output 
-	long line_width_out = m_cinfo.image_width*m_cinfo.input_components;
-	JSAMPLE* buffer_out[1];
-	buffer_out[0] = new JSAMPLE[line_width_out];
+		// Create buffer for output 
+		long line_width_out = m_cinfo.image_width*m_cinfo.input_components;
+		buffer_out[0] = new JSAMPLE[line_width_out];
 
-	// Create profile transform
-	cmsHTRANSFORM hTransform = cmsCreateTransform(	inputProfile.getHandle(),
-													inputFormat,
-													m_outputProfile.getHandle(),
-													outputFormat,
-													m_intent,
-													0);
+		// Create profile transform
+		hTransform = cmsCreateTransform(inputProfile.getHandle(),
+										inputFormat,
+										m_outputProfile.getHandle(),
+										outputFormat,
+										m_intent,
+										0);
 
-	// Read and process image lines
-	while (m_dinfo.output_scanline < m_dinfo.output_height) {
-		std::cout << std::setw(3) << (100*m_dinfo.output_scanline/m_dinfo.output_height) << "%\b\b\b\b";
-		jpeg_read_scanlines(&m_dinfo,&buffer_in[0],1);
-		cmsDoTransform(hTransform,(const void *) buffer_in[0],(void *) buffer_out[0],(cmsUInt32Number) m_dinfo.output_width);
-		jpeg_write_scanlines(&m_cinfo,&buffer_out[0],1);
-	}
+		// Read and process image lines
+		while (m_dinfo.output_scanline < m_dinfo.output_height) {
+			std::cout << std::setw(3) << (100*m_dinfo.output_scanline/m_dinfo.output_height) << "%\b\b\b\b";
+			jpeg_read_scanlines(&m_dinfo,&buffer_in[0],1);
+			cmsDoTransform(hTransform,(const void *) buffer_in[0],(void *) buffer_out[0],(cmsUInt32Number) m_dinfo.output_width);
+			jpeg_write_scanlines(&m_cinfo,&buffer_out[0],1);
+		}
 
-	// Delete profile transform
-	cmsDeleteTransform(hTransform);
+		// Delete profile transform
+		cmsDeleteTransform(hTransform);
+		hTransform = NULL;
 
-	// Finish decompression/compression and close files
-	jpeg_finish_decompress(&m_dinfo);
-	fclose(f);
-	jpeg_finish_compress(&m_cinfo);
-	fclose(fOut);
+		// Finish decompression/compression and close files
+		jpeg_finish_decompress(&m_dinfo);
+		jpeg_finish_compress(&m_cinfo);
+		fclose(f);
+		fclose(fOut);
 
-	// Free resources
-	delete buffer_in[0];
-	delete buffer_out[0];
-	
+		// Free resources
+		delete buffer_in[0];
+		delete buffer_out[0];
+
+	} catch(int e) {
+		// Error during JPEG (de)compression, show message
+		switch (e) {
+			case 1:
+				std::cerr << "Error decompressing source JPEG image." << std::endl;
+				break;
+			case 2:
+				std::cerr << "Error compressing converted JPEG image." << std::endl;
+				break;
+			default:
+				std::cerr << "Unknown exception during conversion." << std::endl;
+				break;
+		}
+
+		// Clean up
+		jpeg_abort_decompress(&m_dinfo);
+		jpeg_abort_compress(&m_cinfo);
+		if (f != NULL) fclose(f);
+		if (fOut != NULL) fclose(fOut);
+		if (hTransform != NULL) cmsDeleteTransform(hTransform);
+		if (buffer_in[0] != NULL) delete buffer_in[0];
+		if (buffer_out[0] != NULL) delete buffer_out[0];
+
+		// Finish with error
+		return false;
+	}	
+
 	std::cout << "Done." << std::endl;
 
 	return true;
@@ -456,4 +501,13 @@ std::string IccConverter::removeTrailingSlash(const std::string str) {
 		newStr = newStr.substr(0,str.length()-1);
 	}
 	return newStr;
+}
+
+/**
+ * Custom handling of errors in the libjpeg library
+ */
+METHODDEF(void) my_error_exit(j_common_ptr cinfo) {
+  /* Return control to the setjmp point */
+  my_error_mgr* myerr = (my_error_mgr*) cinfo->err;
+  longjmp(myerr->setjmp_buffer, 1);
 }
