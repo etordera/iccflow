@@ -3,8 +3,6 @@
 
 #include <string>
 
-extern const std::string g_slash;		/**< Platform-specific path separator */
-
 /**
  * IccFlowApp class implements the iccflow application
  */

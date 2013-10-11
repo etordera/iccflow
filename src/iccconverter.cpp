@@ -4,6 +4,7 @@
 #include <fstream>
 #include <cstring>
 #include <setjmp.h>
+#include "globals.h"
 #include "iccprofile.h"
 #include "iccconverter.h"
 #include "icc_fogra27.h"

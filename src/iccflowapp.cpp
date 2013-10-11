@@ -1,3 +1,4 @@
+#include "globals.h"
 #include "iccflowapp.h"
 #include "iccconverter.h"
 #include <iostream>

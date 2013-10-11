@@ -15,8 +15,6 @@ struct my_error_mgr {
 };
 METHODDEF(void) my_error_exit(j_common_ptr cinfo);
 
-extern const std::string g_slash;		/**< Platform-specific path separator */
-
 /**
  * IccConverter objects manage ICC color transforms on JPEG files
  */
