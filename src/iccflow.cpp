@@ -1,3 +1,4 @@
+#include "iccflow.h"
 #include "iccflowapp.h"
 
 /**
@@ -8,7 +9,6 @@
 */
 int main(int argc, char** argv) {
 	IccFlowApp app(argc,argv);
-	int result = app.run();
-	return result; 
+	return app.run();
 }
 

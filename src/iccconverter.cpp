@@ -239,7 +239,7 @@ bool IccConverter::setJpegQuality(int jpegQuality) {
  */
 bool IccConverter::convert(const std::string& file) {
 	// Generate input file name
-	std::string theFile = m_inputFolder + "/" + file;
+	std::string theFile = m_inputFolder + g_slash + file;
 	std::cout << "Processing " << theFile << ": ";
 
 	// Check valid output profile 
@@ -273,7 +273,7 @@ bool IccConverter::convert(const std::string& file) {
 		jpeg_stdio_src(&m_dinfo,f);
 
 		// Open output file
-		std::string outputFile = m_outputFolder + "/" + file;
+		std::string outputFile = m_outputFolder + g_slash + file;
 		if ((fOut = fopen(outputFile.c_str(), "wb")) == NULL) {
 			std::cerr << "Failed to write  " << outputFile << std::endl;
 			fclose(f);
@@ -497,7 +497,7 @@ void IccConverter::embedIccProfile(const IccProfile& profile, jpeg_compress_stru
  */
 std::string IccConverter::removeTrailingSlash(const std::string str) {
 	std::string newStr(str);
-	if (str.compare(str.length()-1,1,"/") == 0) {
+	if (str.compare(str.length()-1,1,g_slash) == 0) {
 		newStr = newStr.substr(0,str.length()-1);
 	}
 	return newStr;

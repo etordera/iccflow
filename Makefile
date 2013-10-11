@@ -10,7 +10,7 @@ all: $(TARGET)
 $(TARGET): $(O)iccflow.o $(O)iccflowapp.o $(O)iccconverter.o $(O)iccprofile.o
 	g++ $(FLAGS) -o $(TARGET) $^ $(LIBS) 
 
-$(O)iccflow.o: $(S)iccflow.cpp
+$(O)iccflow.o: $(S)iccflow.cpp $(S)iccflow.h
 	g++ -c $(FLAGS) -o $(O)iccflow.o $(S)iccflow.cpp
 
 $(O)iccflowapp.o: $(S)iccflowapp.cpp $(S)iccflowapp.h

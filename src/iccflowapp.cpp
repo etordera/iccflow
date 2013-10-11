@@ -73,11 +73,11 @@ int IccFlowApp::run() {
 			if ((fileLow.rfind(".jpg") == fileLow.size()-4) || (fileLow.rfind(".jpeg") == fileLow.size()-5)) {
 				if (!converter.convert(file)) {
 					success = false;
-					copyFile(m_inputFolder+"/"+file,m_outputFolder+"/"+file);
+					copyFile(m_inputFolder+g_slash+file,m_outputFolder+g_slash+file);
 				}
 			} else {
 				// Just copy all non-JPEG files
-				if (!copyFile(m_inputFolder+"/"+file,m_outputFolder+"/"+file)) {
+				if (!copyFile(m_inputFolder+g_slash+file,m_outputFolder+g_slash+file)) {
 					success = false;
 				}
 			}
