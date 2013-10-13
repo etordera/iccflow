@@ -34,22 +34,22 @@ class IccConverter {
 		bool convert(const std::string&);
 
 	private:
-		std::string m_inputFolder;
-		std::string m_outputFolder;
-		IccProfile m_outputProfile;
-		IccProfile m_defaultRGBProfile;
-		IccProfile m_defaultCMYKProfile;
-		IccProfile m_defaultGrayProfile;
-		std::string m_outputProfileName;
-		std::string m_defaultRGBProfileName;
-		std::string m_defaultCMYKProfileName;
-		std::string m_defaultGrayProfileName;
-		int m_intent;
-		int m_jpegQuality;		/**< Quality parameter used for output JPEG compression */
-		jpeg_decompress_struct m_dinfo;
-		my_error_mgr m_derr;
-		jpeg_compress_struct m_cinfo;
-		my_error_mgr m_cerr;
+		std::string m_inputFolder;				/**< Path to input folder of source images */
+		std::string m_outputFolder;				/**< Path to output folder for processed images */
+		IccProfile m_outputProfile;				/**< Output ICC profile for color transform */
+		IccProfile m_defaultRGBProfile;			/**< Default input RGB ICC profile */
+		IccProfile m_defaultCMYKProfile;		/**< Default input CMYK ICC profile */
+		IccProfile m_defaultGrayProfile;		/**< Default input Grayscale ICC profile */
+		std::string m_outputProfileName;		/**< Name of output ICC profile */
+		std::string m_defaultRGBProfileName;	/**< Name of default input RGB ICC profile */
+		std::string m_defaultCMYKProfileName;	/**< Name of default input CMYK ICC profile */
+		std::string m_defaultGrayProfileName;	/**< Name of default input Grayscale ICC profile */
+		int m_intent;							/**< Rendering intent for color transform */
+		int m_jpegQuality;						/**< Quality parameter used for output JPEG compression */
+		jpeg_decompress_struct m_dinfo;			/**< Info struct for JPEG decompression */
+		my_error_mgr m_derr;					/**< Data for JPEG decompression error management */
+		jpeg_compress_struct m_cinfo;			/**< Info struct for JPEG compression */
+		my_error_mgr m_cerr;					/**< Data for JPEG compression error management */
 
 		bool loadOutputProfile();
 		bool loadDefaultRGBProfile();
