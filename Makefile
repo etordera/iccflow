@@ -2,7 +2,6 @@ TARGET=bin/iccflow
 S=src/
 O=obj/
 LIBS=-ljpeg -llcms2
-#FLAGS=-std=c++0x
 FLAGS=
 
 all: $(TARGET)

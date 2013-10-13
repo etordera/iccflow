@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <dirent.h>
+#include <sys/stat.h>
 #include <algorithm>
 #include <lcms2.h>
 
@@ -64,10 +65,12 @@ int IccFlowApp::run() {
 
 	// Traverse directory and process JPEG files
 	dirent* ent = NULL;
+	struct stat st;
 	std::string file,fileLow;
 	bool success = true;
 	while ((ent = readdir(dir))) {
-		if (ent->d_type == DT_REG) {
+		stat((m_inputFolder+g_slash+ent->d_name).c_str(),&st);
+		if (!S_ISDIR(st.st_mode)) {
 			file = ent->d_name;
 			fileLow = file;
 			transform(fileLow.begin(),fileLow.end(),fileLow.begin(),::tolower);

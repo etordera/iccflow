@@ -1,6 +1,8 @@
 #include <iostream>
 #include <iomanip>
+extern "C" {
 #include <jpeglib.h>
+}
 #include <fstream>
 #include <cstring>
 #include <setjmp.h>
