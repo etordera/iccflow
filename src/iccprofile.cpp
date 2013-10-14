@@ -421,6 +421,7 @@ bool IccProfile::extractIccProfile(std::string filename, char** profileBuffer, u
 					}
 					break;
 
+				case JPEG_MARKER_APP0:
 				case JPEG_MARKER_APP3:
 				case JPEG_MARKER_APP4:
 				case JPEG_MARKER_APP5:

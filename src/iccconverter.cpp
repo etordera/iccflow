@@ -243,7 +243,7 @@ bool IccConverter::setJpegQuality(int jpegQuality) {
 bool IccConverter::convert(const std::string& file) {
 	// Generate input file name
 	std::string theFile = m_inputFolder + g_slash + file;
-	std::cout << "Processing " << theFile << ": ";
+	std::cout << file << ": ";
 
 	// Check valid output profile 
 	if (!m_outputProfile.isValid()) {
