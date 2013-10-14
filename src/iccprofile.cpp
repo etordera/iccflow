@@ -501,7 +501,7 @@ void IccProfile::readBytes(std::ifstream &f, char *buffer, long length) {
  * @param[in] f The ifstream from where to read
  * @param[out] buffer The memory buffer where data will be stored
  * @param[in] length The number of bytes to read
- * @param[in] The memory buffer with the data to compare to.
+ * @param[in] compare The memory buffer with the data to compare to.
  * @throw Integer "1" if reading from the file fails
  * @return true if the bytes read match the bytes to compare, false if different
  */
