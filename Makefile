@@ -28,5 +28,5 @@ $(O)/iccprofile.o: $(S)/iccprofile.cpp $(S)/iccprofile.h $(S)/icc_adobergb.h
 
 clean:
 	rm $(O)/*.o
-	rm $(B)/$(TARGET)
+	rm $(B)/*
 
