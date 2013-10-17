@@ -187,6 +187,7 @@ bool IccFlowApp::parseArguments() {
  * Output help message showing command-line options
  */
 void IccFlowApp::showHelp() {
+	std::cout << "IccFlow " << g_version << std::endl;
 	std::cout << "iccflow -i inputFolder -o outputFolder [options]" << std::endl;
 	std::cout << "Performs ICC color transformation on JPEG files." << std::endl;
 	std::cout << std::endl;

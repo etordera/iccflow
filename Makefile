@@ -6,7 +6,7 @@ LIBS=-ljpeg -llcms2
 
 all: $(B)/$(TARGET)
 
-$(B)/$(TARGET): $(O)/iccflow.o $(O)/iccflowapp.o $(O)/iccconverter.o $(O)/iccprofile.o
+$(B)/$(TARGET): $(O)/iccflow.o $(O)/iccflowapp.o $(O)/iccconverter.o $(O)/iccprofile.o $(O)/globals.o
 	test -d $(B) || mkdir $(B)
 	g++ -o $(B)/$(TARGET) $^ $(LIBS) 
 
@@ -26,6 +26,10 @@ $(O)/iccprofile.o: $(S)/iccprofile.cpp $(S)/iccprofile.h $(S)/icc_adobergb.h
 	test -d $(O) || mkdir $(O)
 	g++ -c -o $(O)/iccprofile.o $(S)/iccprofile.cpp
 
+$(O)/globals.o: $(S)/globals.cpp
+	test -d $(O) || mkdir $(O)
+	g++ -c -o $(O)/globals.o $(S)/globals.cpp
+	
 clean:
 	rm $(O)/*.o
 	rm $(B)/*
