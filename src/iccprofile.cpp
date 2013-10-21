@@ -96,7 +96,7 @@ bool IccProfile::loadFromFile(const std::string& filename) {
 				m_hprofile = cmsOpenProfileFromMem((const void*) profileBuffer, (cmsUInt32Number) profileSize);
 				delete[] profileBuffer;
 				m_profileSource = "Embedded";
-			} else if (exifProfile == 0xFFFF) { 
+			} else if (exifProfile == 2) { 
 				// EXIF AdobeRGB
 				m_hprofile = cmsOpenProfileFromMem((const void*) iccAdobeRGB, (cmsUInt32Number) iccAdobeRGB_size);
 				m_profileSource = "EXIF";
@@ -312,7 +312,7 @@ cmsUInt32Number IccProfile::getNumChannels() {
  * @param[in] filename Path to the JPEG file
  * @param[out] profileBuffer Memory buffer where the embedded profile will be loaded
  * @param[out] profileSize Size in bytes of the embedded profile if detected, 0 if not found
- * @param[out] exifProfile EXIF color profile code if found, 0 if not found
+ * @param[out] exifProfile EXIF color profile code: 0=Not found,  1=sRGB, 2=AdobeRGB, 0xFFFF=undefined
  * @return true if file could be scanned for ICC profiles, false if some error happened 
  */
 bool IccProfile::extractIccProfile(std::string filename, char** profileBuffer, unsigned long &profileSize, unsigned int &exifProfile) {
@@ -365,20 +365,28 @@ bool IccProfile::extractIccProfile(std::string filename, char** profileBuffer, u
 						bool littleEndian = (buffer[0] == (unsigned char) 0x49);
 						unsigned long offsetIFD0 =  exifReadLong(&buffer[4],littleEndian);
 
+						// Get offsets to Exif data, WhitePoint and Primaries Cromaticity
 						f.seekg(exifStart+offsetIFD0,f.beg);
 						readBytes(f,buffer,2);
 						unsigned int IFD0count = exifReadWord(buffer,littleEndian);
 						unsigned long exifIFDoffset = 0;
+						unsigned long whitePointOffset = 0;
+						unsigned long primariesOffset = 0;
 						unsigned int count = 0;
-						while ((count < IFD0count) && (exifIFDoffset == 0)) {
+						while ((count < IFD0count) && ((exifIFDoffset == 0) || (whitePointOffset == 0) || (primariesOffset == 0))) {
 							readBytes(f,buffer,12);
 							unsigned int exifTag = exifReadWord(&buffer[0],littleEndian);
 							if (exifTag == 0x8769) {
 								exifIFDoffset = exifReadLong(&buffer[8],littleEndian);
+							} else if (exifTag == 0x13e) {
+								whitePointOffset = exifReadLong(&buffer[8],littleEndian);
+							} else if (exifTag == 0x13f) {
+								primariesOffset = exifReadLong(&buffer[8],littleEndian);
 							}
 							count++;
 						}
 
+						// Get Exif ColorSpace
 						if (exifIFDoffset != 0) {
 							f.seekg(exifStart+exifIFDoffset,f.beg);
 							readBytes(f,buffer,2);
@@ -393,11 +401,42 @@ bool IccProfile::extractIccProfile(std::string filename, char** profileBuffer, u
 								count++;
 							}
 						}
+
+						// Check AdobeRGB white point and primaries
+						if (exifColorSpace == 0xFFFF) {
+							unsigned long rationals[16];
+							for (int r=0; r<16; r++) rationals[r] = 0;
+
+							if (whitePointOffset != 0) {
+								f.seekg(exifStart+whitePointOffset,f.beg);
+								readBytes(f,buffer,16);
+								for (int wp=0; wp<4; wp++) {
+									rationals[wp] = exifReadLong(&buffer[wp*4],littleEndian);
+								}
+							}	
+
+							if (primariesOffset != 0) {
+								f.seekg(exifStart+primariesOffset,f.beg);
+								readBytes(f,buffer,48);
+								for (int p=0; p<12; p++) {
+									rationals[4+p] = exifReadLong(&buffer[p*4],littleEndian);
+								}
+							}	
+
+							unsigned long adobeRGBrationals[] = {313,1000,329,1000,64,100,33,100,21,100,71,100,15,100,6,100};
+							bool isAdobeRGB = true;
+							for (int cmp=0; cmp<16; cmp++) {
+								if (rationals[cmp] != adobeRGBrationals[cmp]) {
+									isAdobeRGB = false;
+								}
+							}
+							if (isAdobeRGB) {
+								exifColorSpace = 2;
+							}
+						}
 					}
 					f.seekg(markerStart+markerLength,f.beg);
 					break;
-
-
 
 				case JPEG_MARKER_APP2:	// ICC Profile
 					readBytes(f,buffer,2);
