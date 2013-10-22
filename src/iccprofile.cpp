@@ -3,6 +3,7 @@
 #include <cstring>
 #include <lcms2.h>
 #include <algorithm>
+#include <vector>
 #include "icc_adobergb.h"
 #include "iccprofile.h"
 
@@ -326,10 +327,8 @@ bool IccProfile::extractIccProfile(std::string filename, char** profileBuffer, u
 	char buffer[256];
 	unsigned long markerLength = 0;
 	unsigned long markerStart = 0;
-	unsigned char iccChunk = 0;
-	unsigned char iccNumChunks = 0;
-	unsigned long *iccPositions = NULL;
-	unsigned long *iccSizes = NULL;
+	std::vector<unsigned long> iccPositions;
+	std::vector<unsigned long> iccSizes;
 	unsigned long iccProfileSize = 0;
 	unsigned int exifColorSpace = 0;
 
@@ -443,16 +442,12 @@ bool IccProfile::extractIccProfile(std::string filename, char** profileBuffer, u
 					markerLength = (((unsigned char) buffer[0]) << 8) | ((unsigned char) buffer[1]);
 					if (readBytesAndCompare(f,buffer,12,ICC_TAG)) {
 						readBytes(f,buffer,2);
-						iccChunk = (unsigned char) buffer[0];
-						iccNumChunks = (unsigned char) buffer[1];
+						/* iccChunk = (unsigned char) buffer[0]; */
+						/* iccNumChunks = (unsigned char) buffer[1]; */
 						// Store positions of ICC fragments
-						if (iccPositions == NULL) {
-							iccPositions = new unsigned long[iccNumChunks];
-							iccSizes = new unsigned long[iccNumChunks];
-						}
-						iccPositions[iccChunk-1] = f.tellg();
-						iccSizes[iccChunk-1] = markerLength-2-12-2;
-						iccProfileSize += iccSizes[iccChunk-1];
+						iccPositions.push_back(f.tellg());
+						iccSizes.push_back(markerLength-2-12-2);
+						iccProfileSize += iccSizes[iccSizes.size()-1];
 						// Go forward to next JPEG marker
 						f.seekg(markerLength-2-12-2,f.cur);
 					} else {
@@ -491,7 +486,7 @@ bool IccProfile::extractIccProfile(std::string filename, char** profileBuffer, u
 		if (iccProfileSize > 0) {
 			(*profileBuffer) = new char[iccProfileSize];
 			unsigned long bytesRead = 0;
-			for (unsigned char i=0; i<iccNumChunks; i++) {
+			for (unsigned char i=0; i<iccPositions.size(); i++) {
 				f.seekg(iccPositions[i],f.beg);
 				readBytes(f,&((*profileBuffer)[bytesRead]),iccSizes[i]);
 				bytesRead += iccSizes[i];
@@ -502,13 +497,7 @@ bool IccProfile::extractIccProfile(std::string filename, char** profileBuffer, u
 		// Store EXIF color space data
 		exifProfile = exifColorSpace;
 
-		// Free resources 
-		if (iccPositions != NULL) delete[] iccPositions;
-		if (iccSizes != NULL) delete[] iccSizes;
-
 	} catch (int e) {
-		if (iccPositions != NULL) delete[] iccPositions;
-		if (iccSizes != NULL) delete[] iccSizes;
 		f.close();
 		return false;
 	}
