@@ -55,6 +55,12 @@ int IccFlowApp::run() {
 	converter.setIntent(m_intent);
 	converter.setJpegQuality(m_jpegQuality);
 
+	// Create output folder if needed
+	if (!createDirectory(m_outputFolder)) {
+		std::cerr << "Failed to create output folder: " << m_outputFolder << std::endl;
+		return 4;
+	}
+
 	// Open input folder
 	DIR* dir = NULL;
 	dir = opendir(m_inputFolder.c_str());
@@ -252,4 +258,24 @@ bool IccFlowApp::copyFile(const std::string& srcFile, const std::string& dstFile
 	}
 
 	return success;
+}
+
+/**
+ * Tries to create a directory, if it does not already exist.
+ *
+ * @param dir Path of the new directory to create
+ * @return true if directory exists or was successfully created, false otherwise
+ */
+bool IccFlowApp::createDirectory(const std::string& dir) {
+
+	// Check if directory already exists
+	struct stat st;
+	stat(dir.c_str(),&st);
+	if (S_ISDIR(st.st_mode)) {
+		return true;
+	}
+
+	// Try to create directory
+	int result = mkdir(dir.c_str(),0777);
+	return (result == 0);
 }

@@ -23,6 +23,7 @@ class IccFlowApp {
 		bool parseArguments();
 		void showHelp();
 		bool copyFile(const std::string&,const std::string&);
+		bool createDirectory(const std::string&);
 
 	public:
 		IccFlowApp(int,char**);
