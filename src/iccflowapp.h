@@ -24,6 +24,7 @@ class IccFlowApp {
 		void showHelp();
 		bool copyFile(const std::string&,const std::string&);
 		bool createDirectory(const std::string&);
+		bool outputToSameDirectory();
 
 	public:
 		IccFlowApp(int,char**);

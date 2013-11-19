@@ -5,6 +5,7 @@ extern "C" {
 }
 #include <fstream>
 #include <cstring>
+#include <cstdio>
 #include <setjmp.h>
 #include "globals.h"
 #include "iccprofile.h"
@@ -252,6 +253,7 @@ bool IccConverter::convert(const std::string& file) {
 
 	FILE* f = NULL;
 	FILE* fOut = NULL;
+	std::string outputFileTemp("");
 	JSAMPLE* buffer_in[1];
 	buffer_in[0] = NULL;
 	JSAMPLE* buffer_out[1];
@@ -275,9 +277,10 @@ bool IccConverter::convert(const std::string& file) {
 		}
 		jpeg_stdio_src(&m_dinfo,f);
 
-		// Open output file
+		// Open temp output file
 		std::string outputFile = m_outputFolder + g_slash + file;
-		if ((fOut = fopen(outputFile.c_str(), "wb")) == NULL) {
+		outputFileTemp = outputFile + ".tmp";
+		if ((fOut = fopen(outputFileTemp.c_str(), "wb")) == NULL) {
 			std::cerr << "Failed to write  " << outputFile << std::endl;
 			fclose(f);
 			return false;
@@ -411,6 +414,16 @@ bool IccConverter::convert(const std::string& file) {
 		delete buffer_in[0];
 		delete buffer_out[0];
 
+		// Delete original file when processing in same folder, silently fail otherwise 
+		remove(outputFile.c_str());
+
+		// Move temp file to final destination
+		int renameStatus = rename(outputFileTemp.c_str(),outputFile.c_str());
+		if (renameStatus != 0) {
+			std::cerr << "Can't rename " << outputFileTemp << " to " << outputFile << std::endl;
+			return false;
+		}		
+
 	} catch(int e) {
 		// Error during JPEG (de)compression, show message
 		switch (e) {
@@ -429,7 +442,10 @@ bool IccConverter::convert(const std::string& file) {
 		jpeg_abort_decompress(&m_dinfo);
 		jpeg_abort_compress(&m_cinfo);
 		if (f != NULL) fclose(f);
-		if (fOut != NULL) fclose(fOut);
+		if (fOut != NULL) {
+			fclose(fOut);
+			remove(outputFileTemp.c_str());
+		}
 		if (hTransform != NULL) cmsDeleteTransform(hTransform);
 		if (buffer_in[0] != NULL) delete buffer_in[0];
 		if (buffer_out[0] != NULL) delete buffer_out[0];

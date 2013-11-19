@@ -83,12 +83,16 @@ int IccFlowApp::run() {
 			if ((fileLow.rfind(".jpg") == fileLow.size()-4) || (fileLow.rfind(".jpeg") == fileLow.size()-5)) {
 				if (!converter.convert(file)) {
 					success = false;
-					copyFile(m_inputFolder+g_slash+file,m_outputFolder+g_slash+file);
+					if (!outputToSameDirectory()) {
+						copyFile(m_inputFolder+g_slash+file,m_outputFolder+g_slash+file);
+					}
 				}
 			} else {
-				// Just copy all non-JPEG files
-				if (!copyFile(m_inputFolder+g_slash+file,m_outputFolder+g_slash+file)) {
-					success = false;
+				if (!outputToSameDirectory()) {
+					// Just copy all non-JPEG files
+					if (!copyFile(m_inputFolder+g_slash+file,m_outputFolder+g_slash+file)) {
+						success = false;
+					}
 				}
 			}
 		}
@@ -278,4 +282,14 @@ bool IccFlowApp::createDirectory(const std::string& dir) {
 	// Try to create directory
 	int result = mkdir(dir.c_str(),0777);
 	return (result == 0);
+}
+
+/**
+ * Checks if output directory is the same as input directory
+ *
+ * @return true if input and output directory are the same, false otherwise
+ */
+bool IccFlowApp::outputToSameDirectory() {
+	// TODO: Properly check paths using boost::filesystem
+	return (m_inputFolder == m_outputFolder);
 }
