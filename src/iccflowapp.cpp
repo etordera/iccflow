@@ -280,7 +280,11 @@ bool IccFlowApp::createDirectory(const std::string& dir) {
 	}
 
 	// Try to create directory
+	#if defined _WIN32 || defined _WIN64
+	int result = mkdir(dir.c_str());
+	#else
 	int result = mkdir(dir.c_str(),0777);
+	#endif
 	return (result == 0);
 }
 
