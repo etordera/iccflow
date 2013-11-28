@@ -19,7 +19,8 @@ IccFlowApp::IccFlowApp(int argc, char** argv)
 :m_argc(argc),
  m_argv(argv),
  m_intent(INTENT_PERCEPTUAL),
- m_jpegQuality(85)
+ m_jpegQuality(85),
+ m_verbose(false)
 {
 	if (m_argc < 0) {
 		m_argc = 0;
@@ -54,6 +55,7 @@ int IccFlowApp::run() {
 	converter.setDefaultGrayProfile(m_defaultGrayProfile);
 	converter.setIntent(m_intent);
 	converter.setJpegQuality(m_jpegQuality);
+	converter.setVerboseOutput(m_verbose);
 
 	// Create output folder if needed
 	if (!createDirectory(m_outputFolder)) {
@@ -160,6 +162,8 @@ bool IccFlowApp::parseArguments() {
 			if (++i < m_argc) {
 				m_jpegQuality = atoi(m_argv[i]);
 			}
+		} else if (std::string(m_argv[i]) == "-v") {
+			m_verbose = true; 
 		}	
 	}
 
@@ -225,6 +229,8 @@ void IccFlowApp::showHelp() {
 	std::cout << "                      3: Absolute colorimetric" << std::endl;
 	std::cout << std::endl;
 	std::cout << "  -q jpegQuality:    JPEG quality level for output compression (0-100, defaults to 85)" << std::endl; 
+	std::cout << std::endl;
+	std::cout << "  -v:                Enable verbose output. Shows percentage progress during processing." << std::endl; 
 }
 
 

@@ -42,7 +42,7 @@ Usage
 
 `-pgray grayProfile` Default Grayscale input profile when none is found in the source JPEG file (path to .icc/.icm file). Defaults to D50 Gamma-2.2 Grayscale
 
-`-c intentCode`Rendering intent to be used during color transformation. Possible values:
+`-c intentCode` Rendering intent to be used during color transformation. Possible values:
 > 0: Perceptual (DEFAULT)  
 > 1: Relative colorimetric  
 > 2: Saturation  
@@ -50,6 +50,7 @@ Usage
 
 `-q jpegQuality` JPEG quality level for output compression (0-100, defaults to 85)
 
+`-v` Enable verbose output. Displays percentage progress during processing.
 
 License
 -------

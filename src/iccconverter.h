@@ -32,6 +32,7 @@ class IccConverter {
 		bool setIntent(int);
 		bool setJpegQuality(int);
 		bool convert(const std::string&);
+		void setVerboseOutput(bool);
 
 	private:
 		std::string m_inputFolder;				/**< Path to input folder of source images */
@@ -46,6 +47,7 @@ class IccConverter {
 		std::string m_defaultGrayProfileName;	/**< Name of default input Grayscale ICC profile */
 		int m_intent;							/**< Rendering intent for color transform */
 		int m_jpegQuality;						/**< Quality parameter used for output JPEG compression */
+		bool m_verbose;							/**< Verbose output enabled */
 		jpeg_decompress_struct m_dinfo;			/**< Info struct for JPEG decompression */
 		my_error_mgr m_derr;					/**< Data for JPEG decompression error management */
 		jpeg_compress_struct m_cinfo;			/**< Info struct for JPEG compression */

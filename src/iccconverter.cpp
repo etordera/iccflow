@@ -19,7 +19,8 @@ extern "C" {
  */
 IccConverter::IccConverter()
 :m_intent(0),
- m_jpegQuality(85)
+ m_jpegQuality(85),
+ m_verbose(false)
 {
 	// Initialize variables
 	m_inputFolder.clear();
@@ -229,6 +230,17 @@ bool IccConverter::setJpegQuality(int jpegQuality) {
 }
 
 /**
+ * Enable or disable verbose output during processing.
+ * 
+ * @param[in] verbose true for enabling verbose output, false for disabling
+ */
+void IccConverter::setVerboseOutput(bool verbose) {
+	m_verbose = verbose;
+}
+
+
+
+/**
  * Performs ICC color conversion in a JPEG file 
  *
  * The file will be looked for in the source folder previously set
@@ -394,7 +406,9 @@ bool IccConverter::convert(const std::string& file) {
 
 		// Read and process image lines
 		while (m_dinfo.output_scanline < m_dinfo.output_height) {
-			std::cout << std::setw(3) << (100*m_dinfo.output_scanline/m_dinfo.output_height) << "%\b\b\b\b";
+			if (m_verbose) {
+				std::cout << std::setw(3) << (100*m_dinfo.output_scanline/m_dinfo.output_height) << "%\b\b\b\b";
+			}
 			jpeg_read_scanlines(&m_dinfo,&buffer_in[0],1);
 			cmsDoTransform(hTransform,(const void *) buffer_in[0],(void *) buffer_out[0],(cmsUInt32Number) m_dinfo.output_width);
 			jpeg_write_scanlines(&m_cinfo,&buffer_out[0],1);
