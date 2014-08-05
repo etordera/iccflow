@@ -4,7 +4,7 @@
 
 #include <string>
 
-extern const std::string g_version = "1.1";
+extern const std::string g_version = "1.2";
 
 #if defined _WIN32 || defined _WIN64
 extern const std::string g_slash = "\\";

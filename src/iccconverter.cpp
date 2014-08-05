@@ -20,6 +20,7 @@ extern "C" {
 IccConverter::IccConverter()
 :m_intent(0),
  m_jpegQuality(85),
+ m_blackPointCompensation(true),
  m_verbose(false)
 {
 	// Initialize variables
@@ -229,6 +230,17 @@ bool IccConverter::setJpegQuality(int jpegQuality) {
 	return success;
 }
 
+
+/**
+ * Enable or disable Black Point Compensation for color conversions
+ * 
+ * @param[in] blackPointCompensation true for enabling Black Point Compensation, false for disabling
+ */
+void IccConverter::setBlackPointCompensation(bool blackPointCompensation) {
+	m_blackPointCompensation = blackPointCompensation;
+}
+
+
 /**
  * Enable or disable verbose output during processing.
  * 
@@ -397,12 +409,16 @@ bool IccConverter::convert(const std::string& file) {
 		buffer_out[0] = new JSAMPLE[line_width_out];
 
 		// Create profile transform
+		int flags = 0;
+		if (m_blackPointCompensation) {
+			flags = cmsFLAGS_BLACKPOINTCOMPENSATION;
+		}
 		hTransform = cmsCreateTransform(inputProfile.getHandle(),
 										inputFormat,
 										m_outputProfile.getHandle(),
 										outputFormat,
 										m_intent,
-										0);
+										flags);
 
 		// Read and process image lines
 		while (m_dinfo.output_scanline < m_dinfo.output_height) {

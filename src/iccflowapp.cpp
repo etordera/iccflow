@@ -18,8 +18,9 @@
 IccFlowApp::IccFlowApp(int argc, char** argv)
 :m_argc(argc),
  m_argv(argv),
- m_intent(INTENT_PERCEPTUAL),
+ m_intent(INTENT_RELATIVE_COLORIMETRIC),
  m_jpegQuality(85),
+ m_blackPointCompensation(true),
  m_verbose(false)
 {
 	if (m_argc < 0) {
@@ -55,6 +56,7 @@ int IccFlowApp::run() {
 	converter.setDefaultGrayProfile(m_defaultGrayProfile);
 	converter.setIntent(m_intent);
 	converter.setJpegQuality(m_jpegQuality);
+	converter.setBlackPointCompensation(m_blackPointCompensation);
 	converter.setVerboseOutput(m_verbose);
 
 	// Create output folder if needed
@@ -121,7 +123,7 @@ bool IccFlowApp::parseArguments() {
 	m_defaultRGBProfile.clear();
 	m_defaultCMYKProfile.clear();
 	m_defaultGrayProfile.clear();
-	m_intent = INTENT_PERCEPTUAL;
+	m_intent = INTENT_RELATIVE_COLORIMETRIC;
 	m_jpegQuality = 85;
 
 	// Traverse and analyze arguments
@@ -162,6 +164,8 @@ bool IccFlowApp::parseArguments() {
 			if (++i < m_argc) {
 				m_jpegQuality = atoi(m_argv[i]);
 			}
+		} else if (std::string(m_argv[i]) == "-nbpc") {
+			m_blackPointCompensation = false; 
 		} else if (std::string(m_argv[i]) == "-v") {
 			m_verbose = true; 
 		}	
@@ -223,12 +227,14 @@ void IccFlowApp::showHelp() {
 	std::cout << "                      Defaults to D50 Gamma-2.2 Grayscale" << std::endl;
 	std::cout << std::endl;
 	std::cout << "  -c intentCode:      Rendering intent to be used during color transformation. Possible values:" << std::endl;
-	std::cout << "                      0: Perceptual (DEFAULT)" << std::endl;
-	std::cout << "                      1: Relative colorimetric" << std::endl;
+	std::cout << "                      0: Perceptual" << std::endl;
+	std::cout << "                      1: Relative colorimetric (DEFAULT)" << std::endl;
 	std::cout << "                      2: Saturation" << std::endl;
 	std::cout << "                      3: Absolute colorimetric" << std::endl;
 	std::cout << std::endl;
 	std::cout << "  -q jpegQuality:    JPEG quality level for output compression (0-100, defaults to 85)" << std::endl; 
+	std::cout << std::endl;
+	std::cout << "  -nbpc:             Disable Black Point Compensation (enabled by default)" << std::endl; 
 	std::cout << std::endl;
 	std::cout << "  -v:                Enable verbose output. Shows percentage progress during processing." << std::endl; 
 }

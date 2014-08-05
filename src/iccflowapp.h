@@ -19,6 +19,7 @@ class IccFlowApp {
 		std::string m_defaultGrayProfile;	/**< Path to file with default Grayscale ICC Profile when none is found in source image */
 		int m_intent;		/**< Rendering intent to be used during color conversion */
 		int m_jpegQuality;	/**< Quality parameter for output JPEG compression (0-100) */
+		bool m_blackPointCompensation;	/**< Wether to apply Black Point Compensation or not */
 		bool m_verbose;		/**< Verbose output enabled */
 
 		bool parseArguments();
