@@ -43,8 +43,8 @@ Usage
 `-pgray grayProfile` Default Grayscale input profile when none is found in the source JPEG file (path to .icc/.icm file). Defaults to D50 Gamma-2.2 Grayscale
 
 `-c intentCode` Rendering intent to be used during color transformation. Possible values:
-> 0: Perceptual (DEFAULT)  
-> 1: Relative colorimetric  
+> 0: Perceptual
+> 1: Relative colorimetric (DEFAULT)  
 > 2: Saturation  
 > 3: Absolute colorimetric
 
