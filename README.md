@@ -50,6 +50,8 @@ Usage
 
 `-q jpegQuality` JPEG quality level for output compression (0-100, defaults to 85)
 
+`-npbc` Disable black point compensation (enabled by default)
+
 `-v` Enable verbose output. Displays percentage progress during processing.
 
 License
