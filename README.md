@@ -50,7 +50,7 @@ Usage
 
 `-q jpegQuality` JPEG quality level for output compression (0-100, defaults to 85)
 
-`-npbc` Disable black point compensation (enabled by default)
+`-nbpc` Disable black point compensation (enabled by default)
 
 `-no` Disable optimization (enabled by default)
 
