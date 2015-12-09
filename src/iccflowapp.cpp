@@ -21,6 +21,7 @@ IccFlowApp::IccFlowApp(int argc, char** argv)
  m_intent(INTENT_RELATIVE_COLORIMETRIC),
  m_jpegQuality(85),
  m_blackPointCompensation(true),
+ m_enableOptimization(true),
  m_verbose(false)
 {
 	if (m_argc < 0) {
@@ -57,6 +58,7 @@ int IccFlowApp::run() {
 	converter.setIntent(m_intent);
 	converter.setJpegQuality(m_jpegQuality);
 	converter.setBlackPointCompensation(m_blackPointCompensation);
+	converter.setOptimization(m_enableOptimization);
 	converter.setVerboseOutput(m_verbose);
 
 	// Create output folder if needed
@@ -166,6 +168,8 @@ bool IccFlowApp::parseArguments() {
 			}
 		} else if (std::string(m_argv[i]) == "-nbpc") {
 			m_blackPointCompensation = false; 
+		} else if (std::string(m_argv[i]) == "-no") {
+			m_enableOptimization = false; 
 		} else if (std::string(m_argv[i]) == "-v") {
 			m_verbose = true; 
 		}	
@@ -235,6 +239,8 @@ void IccFlowApp::showHelp() {
 	std::cout << "  -q jpegQuality:    JPEG quality level for output compression (0-100, defaults to 85)" << std::endl; 
 	std::cout << std::endl;
 	std::cout << "  -nbpc:             Disable Black Point Compensation (enabled by default)" << std::endl; 
+	std::cout << std::endl;
+	std::cout << "  -no:               Disable optimization (enabled by default)" << std::endl; 
 	std::cout << std::endl;
 	std::cout << "  -v:                Enable verbose output. Shows percentage progress during processing." << std::endl; 
 }

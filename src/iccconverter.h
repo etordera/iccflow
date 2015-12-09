@@ -32,6 +32,7 @@ class IccConverter {
 		bool setIntent(int);
 		bool setJpegQuality(int);
 		void setBlackPointCompensation(bool);
+		void setOptimization(bool);
 		bool convert(const std::string&);
 		void setVerboseOutput(bool);
 
@@ -49,6 +50,7 @@ class IccConverter {
 		int m_intent;							/**< Rendering intent for color transform */
 		int m_jpegQuality;						/**< Quality parameter used for output JPEG compression */
 		bool m_blackPointCompensation;			/**< Wether to apply Black Point Compensation or not */
+		bool m_enableOptimization;			/**< Wether optimitzation is enabled for color transform calculations */
 		bool m_verbose;							/**< Verbose output enabled */
 		jpeg_decompress_struct m_dinfo;			/**< Info struct for JPEG decompression */
 		my_error_mgr m_derr;					/**< Data for JPEG decompression error management */

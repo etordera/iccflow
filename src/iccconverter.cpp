@@ -21,6 +21,7 @@ IccConverter::IccConverter()
 :m_intent(0),
  m_jpegQuality(85),
  m_blackPointCompensation(true),
+ m_enableOptimization(true),
  m_verbose(false)
 {
 	// Initialize variables
@@ -242,6 +243,16 @@ void IccConverter::setBlackPointCompensation(bool blackPointCompensation) {
 
 
 /**
+ * Enable or disable optimization for calculations during color transforms
+ * 
+ * @param[in] enableOptimization true for enabling optimization, false for disabling
+ */
+void IccConverter::setOptimization(bool enableOptimization) {
+	m_enableOptimization = enableOptimization;
+}
+
+
+/**
  * Enable or disable verbose output during processing.
  * 
  * @param[in] verbose true for enabling verbose output, false for disabling
@@ -411,7 +422,10 @@ bool IccConverter::convert(const std::string& file) {
 		// Create profile transform
 		int flags = 0;
 		if (m_blackPointCompensation) {
-			flags = cmsFLAGS_BLACKPOINTCOMPENSATION;
+			flags |= cmsFLAGS_BLACKPOINTCOMPENSATION;
+		}
+		if (!m_enableOptimization) {
+			flags |= cmsFLAGS_NOOPTIMIZE;
 		}
 		hTransform = cmsCreateTransform(inputProfile.getHandle(),
 										inputFormat,

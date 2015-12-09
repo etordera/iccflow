@@ -20,6 +20,7 @@ class IccFlowApp {
 		int m_intent;		/**< Rendering intent to be used during color conversion */
 		int m_jpegQuality;	/**< Quality parameter for output JPEG compression (0-100) */
 		bool m_blackPointCompensation;	/**< Wether to apply Black Point Compensation or not */
+		bool m_enableOptimization;	/**< Wether optimitzation is enabled for color transform calculations */
 		bool m_verbose;		/**< Verbose output enabled */
 
 		bool parseArguments();
