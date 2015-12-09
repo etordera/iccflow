@@ -52,6 +52,8 @@ Usage
 
 `-npbc` Disable black point compensation (enabled by default)
 
+`-no` Disable optimization (enabled by default)
+
 `-v` Enable verbose output. Displays percentage progress during processing.
 
 License
